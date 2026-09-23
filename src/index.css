@@ -1,0 +1,25 @@
+@import 'tailwindcss';
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-neutral-900 antialiased;
+    font-family: system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-1 rounded border border-neutral-600 bg-neutral-700 px-3 py-1 text-neutral-100 transition-colors hover:bg-neutral-600 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-neutral-700;
+  }
+  .btn-primary {
+    @apply border-sky-500 bg-sky-600 hover:bg-sky-500 disabled:hover:bg-sky-600;
+  }
+  .btn-danger {
+    @apply border-red-700 bg-red-800/70 hover:bg-red-700;
+  }
+}

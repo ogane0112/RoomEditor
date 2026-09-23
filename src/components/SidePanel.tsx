@@ -1,0 +1,145 @@
+import { useEffect, useRef } from 'react'
+import * as THREE from 'three'
+import { useEditorStore } from '../store/editorStore'
+import { meshRegistry } from '../three/registry'
+import { originalColorHex } from '../three/gltf'
+import type { RoomObject } from '../types'
+
+const PALETTE = ['#f5f5f4', '#1c1917', '#78716c', '#b45309', '#7c2d12', '#b91c1c', '#15803d', '#1d4ed8', '#7e22ce', '#f59e0b']
+
+export function SidePanel() {
+  const selected = useEditorStore((s) => (s.selectedId ? s.objects[s.selectedId] : null))
+
+  return (
+    <aside className="flex w-72 shrink-0 flex-col border-l border-neutral-700 bg-neutral-800 text-sm text-neutral-200">
+      <section className="border-b border-neutral-700 p-4">
+        <h2 className="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">選択中のオブジェクト</h2>
+        {selected ? <ObjectDetails key={selected.id} obj={selected} /> : <p className="text-neutral-400">3Dビューでオブジェクトをクリックして選択してください</p>}
+      </section>
+      <ObjectList />
+    </aside>
+  )
+}
+
+function ObjectDetails({ obj }: { obj: RoomObject }) {
+  const { updateObject, previewObject, commitPreview, deleteObject, restoreObject } = useEditorStore.getState()
+  const mesh = meshRegistry.get(obj.id)
+  const baseColor = mesh ? originalColorHex(mesh) : null
+  const colorInput = useRef<HTMLInputElement>(null)
+
+  // ピッカー操作中(input)はプレビュー、確定(change)で1件の履歴にまとめる
+  useEffect(() => {
+    const el = colorInput.current
+    if (!el) return
+    const onChange = () => commitPreview()
+    el.addEventListener('change', onChange)
+    return () => el.removeEventListener('change', onChange)
+  }, [commitPreview])
+
+  const deg = (r: number) => THREE.MathUtils.radToDeg(r).toFixed(1)
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <div className="truncate text-base font-medium text-white" title={obj.name}>
+          {obj.name}
+        </div>
+        <div className="text-xs text-neutral-500">ID: {obj.id}</div>
+      </div>
+
+      <dl className="grid grid-cols-[4rem_1fr] gap-y-1 font-mono text-xs">
+        <dt className="text-neutral-400">位置</dt>
+        <dd>{obj.position.map((v) => v.toFixed(3)).join(', ')}</dd>
+        <dt className="text-neutral-400">回転(°)</dt>
+        <dd>{obj.rotation.map(deg).join(', ')}</dd>
+      </dl>
+
+      {baseColor !== null && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-neutral-400">色</span>
+            {obj.color && (
+              <button className="text-xs text-sky-400 hover:underline" onClick={() => updateObject(obj.id, { color: null })}>
+                元の色に戻す
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              ref={colorInput}
+              type="color"
+              aria-label="色を選択"
+              className="h-9 w-12 cursor-pointer rounded border border-neutral-600 bg-transparent"
+              value={obj.color ?? baseColor}
+              onInput={(e) => previewObject(obj.id, { color: e.currentTarget.value })}
+              onChange={() => {}}
+              disabled={obj.deleted}
+            />
+            <span className="font-mono text-xs text-neutral-400">{obj.color ?? `${baseColor}(元の色)`}</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {PALETTE.map((c) => (
+              <button
+                key={c}
+                className={`h-6 w-6 rounded border ${obj.color === c ? 'border-white ring-2 ring-sky-500' : 'border-neutral-600'}`}
+                style={{ backgroundColor: c }}
+                title={c}
+                aria-label={`色 ${c}`}
+                disabled={obj.deleted}
+                onClick={() => updateObject(obj.id, { color: c })}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {obj.deleted ? (
+        <button className="btn w-full justify-center" onClick={() => restoreObject(obj.id)}>
+          復元する
+        </button>
+      ) : (
+        <button className="btn btn-danger w-full justify-center" onClick={() => deleteObject(obj.id)}>
+          削除 (Delete)
+        </button>
+      )}
+    </div>
+  )
+}
+
+function ObjectList() {
+  const order = useEditorStore((s) => s.objectOrder)
+  const objects = useEditorStore((s) => s.objects)
+  const selectedId = useEditorStore((s) => s.selectedId)
+  const select = useEditorStore((s) => s.select)
+
+  return (
+    <section className="flex min-h-0 flex-1 flex-col">
+      <h2 className="px-4 pt-4 pb-2 text-xs font-semibold tracking-wider text-neutral-400 uppercase">
+        オブジェクト一覧 ({order.length})
+      </h2>
+      <ul className="min-h-0 flex-1 overflow-y-auto pb-2">
+        {order.map((id) => {
+          const obj = objects[id]
+          if (!obj) return null
+          return (
+            <li key={id}>
+              <button
+                className={`flex w-full items-center gap-2 px-4 py-1.5 text-left ${
+                  id === selectedId ? 'bg-sky-700/60 text-white' : 'hover:bg-neutral-700'
+                } ${obj.deleted ? 'text-neutral-500 line-through' : ''}`}
+                onClick={() => select(id)}
+              >
+                <span
+                  className="h-3 w-3 shrink-0 rounded-sm border border-neutral-600"
+                  style={{ backgroundColor: obj.color ?? 'transparent' }}
+                />
+                <span className="truncate">{obj.name}</span>
+                {obj.deleted && <span className="ml-auto text-xs no-underline">削除済み</span>}
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}

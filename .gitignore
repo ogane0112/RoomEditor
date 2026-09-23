@@ -1,0 +1,5 @@
+node_modules
+dist
+public/draco
+*.tsbuildinfo
+.DS_Store
