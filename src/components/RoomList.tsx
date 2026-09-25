@@ -23,9 +23,9 @@ export function RoomList() {
 
   return (
     <div className="h-full overflow-y-auto bg-neutral-900 text-neutral-200">
-      <div className="mx-auto max-w-5xl px-6 py-10">
-        <header className="mb-8 flex flex-wrap items-end gap-4">
-          <div className="flex-1">
+      <div className="mx-auto max-w-5xl px-4 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:px-6 md:py-10">
+        <header className="mb-6 flex flex-wrap items-end gap-4 md:mb-8">
+          <div className="min-w-60 flex-1">
             <h1 className="text-2xl font-bold text-white">RoomEditor</h1>
             <p className="mt-1 text-sm text-neutral-400">
               3DスキャンしたGLBを読み込んで、家具の移動・回転・色変更・削除ができます。
@@ -40,7 +40,7 @@ export function RoomList() {
           </div>
         </header>
 
-        <div className="mb-8 rounded-lg border-2 border-dashed border-neutral-700 p-8 text-center text-neutral-400">
+        <div className="mb-8 rounded-lg border-2 border-dashed border-neutral-700 p-8 text-center text-neutral-400 pointer-coarse:hidden">
           .glb ファイルをこのウィンドウにドラッグ&ドロップすると新しい部屋として開きます
         </div>
 
@@ -52,7 +52,7 @@ export function RoomList() {
         ) : rooms.length === 0 ? (
           <p className="text-neutral-500">まだ保存された部屋はありません。</p>
         ) : (
-          <ul className="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-4">
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] sm:gap-4">
             {rooms.map((room) => (
               <RoomCard key={room.id} room={room} onOpen={() => open(room.id)} onChanged={refresh} />
             ))}
@@ -97,7 +97,7 @@ function RoomCard({ room, onOpen, onChanged }: { room: RoomRecord; onOpen: () =>
           </div>
         </div>
       </button>
-      <div className="flex gap-3 px-3 py-2 text-xs">
+      <div className="flex gap-4 px-3 py-2 text-xs">
         <button className="text-sky-400 hover:underline" onClick={rename}>
           名前を変更
         </button>

@@ -6,10 +6,22 @@
   #root {
     height: 100%;
   }
+  #root {
+    /* スマホのアドレスバー伸縮に追従する */
+    height: 100dvh;
+  }
   body {
+    overscroll-behavior: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     @apply bg-neutral-900 antialiased;
     font-family: system-ui, -apple-system, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
   }
+}
+
+/* OrbitControls / TransformControls がインラインで touch-action を auto 等に戻しても、キャンバス上のジェスチャーでページが拡大・スクロールしないようにする */
+canvas {
+  touch-action: none !important;
 }
 
 @layer components {

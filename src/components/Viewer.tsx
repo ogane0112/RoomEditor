@@ -76,13 +76,21 @@ function Overlay({ children }: { children: React.ReactNode }) {
 
 function HelpHint() {
   return (
-    <div className="pointer-events-none absolute bottom-3 left-3 rounded bg-black/50 px-3 py-2 text-xs leading-relaxed text-neutral-300">
-      クリック: 選択 / 左ドラッグ: 回転 / 右ドラッグ: 平行移動 / ホイール: ズーム
-      <br />
-      W: 移動 / E: 回転 / Delete: 削除 / Esc: 選択解除 / Ctrl+Z・Ctrl+Shift+Z: 元に戻す・やり直し
-    </div>
+    <>
+      <div className="pointer-events-none absolute bottom-3 left-3 rounded bg-black/50 px-3 py-2 text-xs leading-relaxed text-neutral-300 pointer-coarse:hidden">
+        クリック: 選択 / 左ドラッグ: 回転 / 右ドラッグ: 平行移動 / ホイール: ズーム
+        <br />
+        W: 移動 / E: 回転 / Delete: 削除 / Esc: 選択解除 / Ctrl+Z・Ctrl+Shift+Z: 元に戻す・やり直し
+      </div>
+      <div className="pointer-events-none absolute bottom-2 left-2 hidden rounded bg-black/50 px-2 py-1 text-[11px] text-neutral-300 pointer-coarse:block">
+        タップ: 選択 / 1本指: 回転 / 2本指: 移動・ズーム
+      </div>
+    </>
   )
 }
+
+/** タッチ操作の端末ではギズモを大きくしてつかみやすくする */
+const isCoarsePointer = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
 
 interface RoomModelProps {
   onLoading: () => void
@@ -229,7 +237,7 @@ function SelectionControls() {
       <TransformControls
         object={mesh}
         mode={mode}
-        size={0.9}
+        size={isCoarsePointer ? 1.4 : 0.9}
         onMouseDown={() => {
           gizmoState.active = true
         }}
