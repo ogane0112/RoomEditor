@@ -32,6 +32,10 @@ npm run build      # dist/ に静的ファイルを出力
 
 `vite.config.ts` で `base: './'` を指定しているため、`dist/` はGitHub Pagesなど任意のパス配下の静的ホスティングにそのまま置けます。
 
+## デプロイ
+
+https://ogane0112.github.io/RoomEditor/ で公開しています。`.github/workflows/deploy.yml` がプッシュのたびにテスト・ビルドを行い、`dist/` を `gh-pages` ブランチへ反映します(GitHub Pages はこのブランチから配信)。
+
 ## 技術構成
 
 Vite + React + TypeScript / React Three Fiber + drei / Zustand / IndexedDB (idb) / Tailwind CSS
