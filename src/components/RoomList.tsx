@@ -4,10 +4,12 @@ import { openNewRoom, openSavedRoom } from '../lib/rooms'
 import { createSampleRoomGLB } from '../three/sampleRoom'
 import type { RoomRecord } from '../types'
 import { ImportButton } from './Toolbar'
+import { PhotoScanDialog } from './PhotoScanDialog'
 
 export function RoomList() {
   const [rooms, setRooms] = useState<RoomRecord[] | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [scanOpen, setScanOpen] = useState(false)
 
   const refresh = useCallback(() => {
     listRooms()
@@ -32,7 +34,10 @@ export function RoomList() {
               データはすべてこのブラウザ内に保存され、外部には送信されません。
             </p>
           </div>
-          <div className="flex gap-2 text-sm">
+          <div className="flex flex-wrap gap-2 text-sm">
+            <button className="btn btn-primary" onClick={() => setScanOpen(true)}>
+              写真から3D化
+            </button>
             <button className="btn" onClick={openSample}>
               サンプルの部屋を開く
             </button>
@@ -59,6 +64,7 @@ export function RoomList() {
           </ul>
         )}
       </div>
+      {scanOpen && <PhotoScanDialog onClose={() => setScanOpen(false)} />}
     </div>
   )
 }

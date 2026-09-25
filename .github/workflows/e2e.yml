@@ -1,0 +1,32 @@
+name: E2E (photo scan)
+
+# 「写真から3D化」を実際のAIモデル(Hugging Face からダウンロード)で動かして確認する
+on:
+  push:
+    branches: [main, claude/create-from-reference-mql44v]
+  workflow_dispatch:
+
+jobs:
+  photo-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Run photo scan E2E
+        run: |
+          npx vite preview --port 4173 --strictPort &
+          for i in $(seq 1 30); do curl -sf http://localhost:4173/ >/dev/null && break; sleep 1; done
+          node scripts/e2e-photo-scan.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-screenshot
+          path: e2e-photo-scan.png
+          if-no-files-found: ignore

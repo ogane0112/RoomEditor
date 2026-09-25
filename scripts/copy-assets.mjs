@@ -1,5 +1,5 @@
-// Copies three.js' DRACO decoder into public/ so compressed GLBs can be
-// decoded fully offline (no CDN request, scan data never leaves the browser).
+// three.js 同梱の DRACO デコーダを public/ にコピーし、圧縮GLBを外部CDNなしで読めるようにする
+// (スキャンデータはブラウザの外に出さない)。
 import { cpSync, mkdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
