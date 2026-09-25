@@ -10,15 +10,24 @@ export interface PhotoMeshOptions {
   far: number
   /** 横方向の格子数(細かいほど精密だが重い) */
   columns?: number
-  /** 隣り合う点の奥行きの比がこれを超えたら、別の物体の境目とみなして面を張らない */
-  edgeThreshold?: number
+  /** パーツ分割の細かさ(0=控えめ〜1=細かく)。奥行きの段差をどこまで小さくても輪郭とみなすかを決める */
+  sensitivity?: number
   /** これより小さい破片は捨てる(格子セル数) */
   minPartCells?: number
   /** 個別パーツとして分ける最大数(残りは「その他」にまとめる) */
   maxParts?: number
 }
 
-const DEFAULTS = { columns: 256, edgeThreshold: 0.08, minPartCells: 40, maxParts: 24 }
+const DEFAULTS = { columns: 256, sensitivity: 0.5, minPartCells: 40, maxParts: 24 }
+
+/** 分割の細かさ(0〜1)を、輪郭とみなす視差の段差に変換する(実際の推定結果で調整した値) */
+export function edgeThresholdFor(sensitivity: number) {
+  const s = Math.min(Math.max(sensitivity, 0), 1)
+  return 0.055 * Math.pow(0.018 / 0.055, s)
+}
+
+/** 写真スキャンのGLBに含める、撮影時のカメラの名前 */
+export const PHOTO_CAMERA_NAME = 'PhotoCamera'
 
 /** 画像の長辺方向の画角(ラジアン) */
 export function longSideFov(focalLength35mm: number) {
@@ -41,23 +50,110 @@ function sampleBilinear(depth: DepthMap, u: number, v: number) {
   return top * (1 - fy) + bottom * fy
 }
 
-class UnionFind {
-  parent: Int32Array
-  constructor(n: number) {
-    this.parent = new Int32Array(n).map((_, i) => i)
-  }
-  find(a: number): number {
-    while (this.parent[a] !== a) {
-      this.parent[a] = this.parent[this.parent[a]]
-      a = this.parent[a]
+const NEIGHBORS = [
+  [1, 0],
+  [-1, 0],
+  [0, 1],
+  [0, -1],
+] as const
+
+/** mask の各画素を radius 画素ぶん太らせる */
+function dilate(mask: Uint8Array, w: number, h: number, radius: number) {
+  if (radius <= 0) return mask.slice()
+  const out = new Uint8Array(mask.length)
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (!mask[y * w + x]) continue
+      for (let dy = -radius; dy <= radius; dy++) {
+        const qy = y + dy
+        if (qy < 0 || qy >= h) continue
+        for (let dx = -radius; dx <= radius; dx++) {
+          const qx = x + dx
+          if (qx >= 0 && qx < w) out[qy * w + qx] = 1
+        }
+      }
     }
-    return a
   }
-  union(a: number, b: number) {
-    const ra = this.find(a)
-    const rb = this.find(b)
-    if (ra !== rb) this.parent[ra] = rb
+  return out
+}
+
+/**
+ * 視差マップを、奥行きの段差(物体の輪郭)で区切られた領域に分ける。
+ * 1. 視差の段差が大きい所を輪郭とする(遠くの細かな揺らぎには反応しにくいよう、距離ではなく視差で判定)
+ * 2. 輪郭をさらに太らせてから領域を塗り分け、細いくびれでつながった物体同士を切り離す
+ * 3. 太らせた分を領域に戻し、最後に輪郭上の点も、視差が最も近い隣の領域に含める
+ * @returns 各点の領域番号
+ */
+export function segmentDisparity(disp: Float32Array, w: number, h: number, edge: number, erode = 2, seedSize = 12) {
+  const at = (x: number, y: number) => disp[Math.min(h - 1, Math.max(0, y)) * w + Math.min(w - 1, Math.max(0, x))]
+  const rawEdge = new Uint8Array(w * h)
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const gx = Math.abs(at(x + 1, y) - at(x - 1, y))
+      const gy = Math.abs(at(x, y + 1) - at(x, y - 1))
+      if (Math.max(gx, gy) > edge) rawEdge[y * w + x] = 1
+    }
   }
+  const hard = dilate(rawEdge, w, h, 1)
+  const eroded = dilate(hard, w, h, erode)
+
+  const label = new Int32Array(w * h).fill(-1)
+  const sizes: number[] = []
+  const stack: number[] = []
+  for (let s = 0; s < w * h; s++) {
+    if (eroded[s] || label[s] >= 0) continue
+    const id = sizes.length
+    let n = 0
+    label[s] = id
+    stack.push(s)
+    while (stack.length) {
+      const p = stack.pop()!
+      n++
+      const px = p % w
+      const py = (p - px) / w
+      for (const [dx, dy] of NEIGHBORS) {
+        const qx = px + dx
+        const qy = py + dy
+        if (qx < 0 || qy < 0 || qx >= w || qy >= h) continue
+        const q = qy * w + qx
+        if (!eroded[q] && label[q] < 0) {
+          label[q] = id
+          stack.push(q)
+        }
+      }
+    }
+    sizes.push(n)
+  }
+  // 小さすぎる種は捨てる(周りの領域が広がって埋める)
+  for (let p = 0; p < w * h; p++) if (label[p] >= 0 && sizes[label[p]] < seedSize) label[p] = -1
+
+  // 領域を少しずつ同時に広げる。canEnter が true の点にだけ広がる
+  const grow = (canEnter: (q: number, from: number) => boolean) => {
+    let frontier: number[] = []
+    for (let p = 0; p < w * h; p++) if (label[p] >= 0) frontier.push(p)
+    while (frontier.length) {
+      const next: number[] = []
+      for (const p of frontier) {
+        const px = p % w
+        const py = (p - px) / w
+        for (const [dx, dy] of NEIGHBORS) {
+          const qx = px + dx
+          const qy = py + dy
+          if (qx < 0 || qy < 0 || qx >= w || qy >= h) continue
+          const q = qy * w + qx
+          if (label[q] < 0 && canEnter(q, p)) {
+            label[q] = label[p]
+            next.push(q)
+          }
+        }
+      }
+      frontier = next
+    }
+  }
+  grow((q) => !hard[q])
+  // 輪郭上の点は、視差が近い(=同じ面にある)隣の領域から順に取り込む
+  for (const limit of [edge, edge * 2, edge * 4, Infinity]) grow((q, from) => Math.abs(disp[q] - disp[from]) <= limit)
+  return label
 }
 
 /**
@@ -66,7 +162,7 @@ class UnionFind {
  * 奥行きが大きく飛ぶ所(物体の輪郭)で面を切ることで、手前の家具などを別パーツに分ける。
  */
 export function buildPhotoMeshes(image: HTMLCanvasElement, depth: DepthMap, options: PhotoMeshOptions) {
-  const { columns, edgeThreshold, minPartCells, maxParts } = { ...DEFAULTS, ...options }
+  const { columns, sensitivity, minPartCells, maxParts } = { ...DEFAULTS, ...options }
   const aspect = image.width / image.height
   const cols = columns
   const rows = Math.max(2, Math.round(columns / aspect))
@@ -84,6 +180,7 @@ export function buildPhotoMeshes(image: HTMLCanvasElement, depth: DepthMap, opti
   const positions = new Float32Array(vx * vy * 3)
   const uvs = new Float32Array(vx * vy * 2)
   const dist = new Float32Array(vx * vy)
+  const disp = new Float32Array(vx * vy)
   for (let j = 0; j < vy; j++) {
     for (let i = 0; i < vx; i++) {
       const u = i / cols
@@ -92,6 +189,7 @@ export function buildPhotoMeshes(image: HTMLCanvasElement, depth: DepthMap, opti
       const z = 1 / (disparity * (invNear - invFar) + invFar)
       const k = j * vx + i
       dist[k] = z
+      disp[k] = disparity
       positions[k * 3] = (u * 2 - 1) * tanX * z
       positions[k * 3 + 1] = (1 - v * 2) * tanY * z
       positions[k * 3 + 2] = -z
@@ -100,38 +198,21 @@ export function buildPhotoMeshes(image: HTMLCanvasElement, depth: DepthMap, opti
     }
   }
 
-  // 奥行きが滑らかにつながっている格子セルだけを残す
-  const cellCount = cols * rows
-  const kept = new Uint8Array(cellCount)
-  for (let j = 0; j < rows; j++) {
-    for (let i = 0; i < cols; i++) {
-      const a = dist[j * vx + i]
-      const b = dist[j * vx + i + 1]
-      const c = dist[(j + 1) * vx + i]
-      const d = dist[(j + 1) * vx + i + 1]
-      const lo = Math.min(a, b, c, d)
-      const hi = Math.max(a, b, c, d)
-      if (hi / lo - 1 < edgeThreshold) kept[j * cols + i] = 1
-    }
-  }
-
-  // 隣接する残ったセル同士をつなげて、ひと続きの面(パーツ)ごとにまとめる
-  const uf = new UnionFind(cellCount)
-  for (let j = 0; j < rows; j++) {
-    for (let i = 0; i < cols; i++) {
-      const c = j * cols + i
-      if (!kept[c]) continue
-      if (i + 1 < cols && kept[c + 1]) uf.union(c, c + 1)
-      if (j + 1 < rows && kept[c + cols]) uf.union(c, c + cols)
-    }
-  }
+  // 奥行きの段差で領域を分け、各セルを4隅の領域に割り当てる。
+  // 境目をまたぐセルは一番奥の隅の領域(=背景側)に含め、写真の視点から見て隙間ができないようにする
+  const label = segmentDisparity(disp, vx, vy, edgeThresholdFor(sensitivity))
   const groups = new Map<number, number[]>()
-  for (let c = 0; c < cellCount; c++) {
-    if (!kept[c]) continue
-    const root = uf.find(c)
-    let list = groups.get(root)
-    if (!list) groups.set(root, (list = []))
-    list.push(c)
+  for (let j = 0; j < rows; j++) {
+    for (let i = 0; i < cols; i++) {
+      const a = j * vx + i
+      let farthest = a
+      for (const k of [a + 1, a + vx, a + vx + 1]) if (dist[k] > dist[farthest]) farthest = k
+      const l = label[farthest]
+      if (l < 0) continue
+      let list = groups.get(l)
+      if (!list) groups.set(l, (list = []))
+      list.push(j * cols + i)
+    }
   }
   const parts = [...groups.values()].filter((cells) => cells.length >= minPartCells).sort((a, b) => b.length - a.length)
   if (parts.length === 0) throw new Error('写真から立体を作れませんでした。別の写真で試してください。')
@@ -152,9 +233,17 @@ export function buildPhotoMeshes(image: HTMLCanvasElement, depth: DepthMap, opti
   group.name = 'PhotoScan'
   for (const { name, cells } of named) group.add(buildPart(name, cells))
 
+  // 撮影したカメラ(原点から -Z 向き)も入れておき、エディタで開いたとき写真と同じ視点から見られるようにする。
+  // メッシュのIDは子の並び順で決まるため、カメラは最後に追加する
+  const verticalFov = THREE.MathUtils.radToDeg(2 * Math.atan(tanY))
+  const camera = new THREE.PerspectiveCamera(verticalFov, aspect, 0.05, options.far * 4)
+  camera.name = PHOTO_CAMERA_NAME
+  group.add(camera)
+
   // 最も低い点が床(y=0)に来るように全体を持ち上げる
-  const box = new THREE.Box3().setFromObject(group)
-  group.children.forEach((m) => (m.position.y -= box.min.y))
+  const box = new THREE.Box3()
+  group.children.forEach((o) => (o as THREE.Mesh).isMesh && box.expandByObject(o))
+  group.children.forEach((o) => (o.position.y -= box.min.y))
   return group
 
   function buildPart(name: string, cells: number[]) {

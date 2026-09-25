@@ -44,6 +44,7 @@ export function PhotoScanDialog({ onClose }: { onClose: () => void }) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [depthRange, setDepthRange] = useState(5)
   const [focalLength, setFocalLength] = useState(26)
+  const [sensitivity, setSensitivity] = useState(0.5)
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
   const cameraInput = useRef<HTMLInputElement>(null)
   const libraryInput = useRef<HTMLInputElement>(null)
@@ -77,7 +78,7 @@ export function PhotoScanDialog({ onClose }: { onClose: () => void }) {
       setStatus({ kind: 'working', message: '3Dモデルを作成中…' })
       // 重い処理の前に描画を1回挟んでメッセージを表示させる
       await new Promise((r) => setTimeout(r, 30))
-      const group = buildPhotoMeshes(image, depth, { focalLength35mm: focalLength, near: 0.5, far: depthRange })
+      const group = buildPhotoMeshes(image, depth, { focalLength35mm: focalLength, near: 0.5, far: depthRange, sensitivity })
       const glb = await exportPhotoMeshesGLB(group)
       const stamp = new Date().toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
       openNewRoom(glb, `写真スキャン ${stamp.replace(/\//g, '-')}.glb`)
@@ -152,6 +153,25 @@ export function PhotoScanDialog({ onClose }: { onClose: () => void }) {
                 disabled={working}
               />
               <span className="text-xs text-neutral-500">スマホの通常カメラは約24〜26mm、超広角は約13mmです</span>
+            </label>
+
+            <label className="mb-4 block">
+              <span className="flex justify-between text-neutral-400">
+                <span>パーツ分割の細かさ</span>
+                <span className="text-neutral-200">{sensitivity < 0.34 ? '控えめ' : sensitivity < 0.67 ? '標準' : '細かく'}</span>
+              </span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={sensitivity}
+                onChange={(e) => setSensitivity(Number(e.target.value))}
+                className="w-full accent-sky-500"
+                disabled={working}
+                aria-label="パーツ分割の細かさ"
+              />
+              <span className="text-xs text-neutral-500">家具が背景とつながったままなら細かく、バラバラになりすぎたら控えめに</span>
             </label>
 
             <button className="btn btn-primary w-full justify-center py-2 text-base" onClick={run} disabled={working}>
