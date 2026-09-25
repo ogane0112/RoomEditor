@@ -1,0 +1,23 @@
+name: Debug depth dump (temporary)
+on:
+  push:
+    branches: [claude/create-from-reference-mql44v]
+    paths: ['.github/debug/**', '.github/workflows/debug-depth.yml']
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: |
+          npx vite preview --port 4173 --strictPort &
+          for i in $(seq 1 30); do curl -sf http://localhost:4173/ >/dev/null && break; sleep 1; done
+          node scripts/e2e-photo-scan.mjs
+      - run: cp .github/debug/dump-depth.mjs ./dump-depth.mjs && node dump-depth.mjs

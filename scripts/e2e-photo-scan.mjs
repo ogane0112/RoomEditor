@@ -22,7 +22,7 @@ try {
   await page.getByText('サンプルの部屋を開く').click()
   await page.getByText('オブジェクト一覧 (9)').waitFor()
   await page.waitForTimeout(1500)
-  const photo = await page.locator('canvas').screenshot({ type: 'jpeg', quality: 90 })
+  const photo = await page.locator('canvas').screenshot({ type: 'jpeg', quality: 90, path: 'e2e-photo.jpg' })
   // 未保存の部屋を閉じる確認ダイアログは「OK」にする
   page.once('dialog', (d) => d.accept())
   await page.getByText('← 部屋一覧').click()
