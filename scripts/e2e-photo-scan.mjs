@@ -33,7 +33,7 @@ try {
   await page.getByRole('button', { name: '3D化する' }).click()
 
   const started = Date.now()
-  const header = page.getByText(/^オブジェクト一覧 \(\d+\)$/)
+  const header = page.getByText(/オブジェクト一覧 \(\d+\)/)
   const failure = page.getByText(/3D化に失敗しました/)
   let lastMessage = ''
   while (!(await header.isVisible())) {
@@ -55,6 +55,11 @@ try {
   if ([...hosts].some((h) => h.includes('jsdelivr'))) throw new Error('ONNX Runtime was loaded from a CDN')
   if (errors.length) throw new Error(`page errors: ${errors.join('\n')}`)
   console.log('OK')
+} catch (e) {
+  await page.screenshot({ path: 'e2e-photo-scan.png' }).catch(() => {})
+  console.log('visible text:', (await page.locator('body').innerText().catch(() => '')).slice(0, 500))
+  console.log('errors:', errors)
+  throw e
 } finally {
   await browser.close()
 }
