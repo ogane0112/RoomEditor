@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
+import { COCO_TO_KIND, FURNITURE } from '../three/furniture'
 import * as THREE from 'three'
 import { estimateRoomLayout } from './roomLayout'
 import { buildRoomScene } from '../three/roomScene'
@@ -97,8 +98,10 @@ describe('estimateRoomLayout on an eye-level photo', () => {
   const buf = readFileSync(new URL('../three/__fixtures__/eye.depth.bin', import.meta.url))
   const u16 = new Uint16Array(buf.buffer, buf.byteOffset, buf.byteLength / 2)
   const depth = { width: meta.width, height: meta.height, data: Float32Array.from(u16, (v) => v / 65535) }
+  // CGの家具はAIの確信度が低め(ソファ 0.45)なので、足切りを下げて寸法の推定を確かめる
   const layout = estimateRoomLayout(depth, { width: meta.imageWidth, height: meta.imageHeight }, meta.detections, null, {
     focalLength35mm: 26,
+    minScore: 0.4,
   })
   const find = (kind: string) => layout.furniture.filter((f) => f.kind === kind)
   const dist = (p: number[]) => Math.hypot(p[0], p[2])
@@ -134,7 +137,69 @@ describe('estimateRoomLayout on an eye-level photo', () => {
     const relabelled = meta.detections.map((d: { label: string }) => (d.label === 'sofa' ? { ...d, label: 'chair', score: 0.3 } : d))
     const alt = estimateRoomLayout(depth, { width: meta.imageWidth, height: meta.imageHeight }, relabelled, null, {
       focalLength35mm: 26,
+      minScore: 0.4,
     })
     expect(alt.furniture.map((f) => f.name).sort()).toEqual(['ソファ', '椅子'].sort())
+  })
+})
+
+describe('estimateRoomLayout on real photos (COCO val2017)', () => {
+  // 実写の室内写真8枚に対する実際のAIの出力(写真そのものは含まない)。COCO の正解ラベル付き
+  const dir = new URL('../three/__fixtures__/real/', import.meta.url)
+  const cases = readdirSync(dir)
+    .filter((f) => f.endsWith('.json'))
+    .map((f) => {
+      const meta = JSON.parse(readFileSync(new URL(f, dir), 'utf8'))
+      const buf = readFileSync(new URL(f.replace('.json', '.depth.bin'), dir))
+      const u16 = new Uint16Array(buf.buffer, buf.byteOffset, buf.byteLength / 2)
+      const depth = { width: meta.width, height: meta.height, data: Float32Array.from(u16, (v) => v / 65535) }
+      const layout = estimateRoomLayout(depth, { width: meta.imageWidth, height: meta.imageHeight }, meta.detections, null, {
+        focalLength35mm: 26,
+      })
+      return { name: f, meta, layout }
+    })
+
+  it('has fixtures', () => expect(cases.length).toBeGreaterThanOrEqual(6))
+
+  it.each(cases.map((c) => [c.name, c] as const))('%s: builds a plausible room', (_, { meta, layout }) => {
+    // 部屋は現実的な広さ・高さ
+    expect(layout.maxX - layout.minX).toBeLessThanOrEqual(10.01)
+    expect(layout.maxZ - layout.minZ).toBeLessThanOrEqual(8.61)
+    expect(layout.height).toBeGreaterThanOrEqual(2.4)
+    expect(layout.height).toBeLessThanOrEqual(3.2)
+    for (const f of layout.furniture) {
+      const [w, h, d] = FURNITURE[f.kind].size
+      // 寸法は種類ごとの標準から大きく外れない
+      expect(f.size[0]).toBeGreaterThanOrEqual(w * 0.6 - 1e-6)
+      expect(f.size[0]).toBeLessThanOrEqual(w * 1.6 + 1e-6)
+      expect(f.size[1]).toBeGreaterThanOrEqual(h * 0.7 - 1e-6)
+      expect(f.size[1]).toBeLessThanOrEqual(h * 1.4 + 1e-6)
+      expect(f.size[2]).toBeLessThanOrEqual(d * 1.4 + 1e-6)
+      // 浮かせてよいのはテレビ・電子レンジ・観葉植物だけ
+      if (!['tv', 'microwave', 'plant'].includes(f.kind)) expect(f.position[1]).toBe(0)
+      expect(f.position[1]).toBeLessThanOrEqual(2.2)
+    }
+    // 家具の数は正解から大きく外れない(誤検出で椅子だらけにならない)
+    const truth = meta.groundTruth.filter((g: { name: string }) => COCO_TO_KIND[g.name]).length
+    expect(layout.furniture.length).toBeLessThanOrEqual(truth + 2)
+  })
+
+  it('finds most of the labelled furniture across the photos', () => {
+    let found = 0
+    let truth = 0
+    for (const { meta, layout } of cases) {
+      const kinds = layout.furniture.map((f) => f.kind)
+      for (const g of meta.groundTruth as { name: string }[]) {
+        const kind = COCO_TO_KIND[g.name]
+        if (!kind) continue
+        truth++
+        const i = kinds.indexOf(kind)
+        if (i >= 0) {
+          found++
+          kinds.splice(i, 1)
+        }
+      }
+    }
+    expect(found / truth).toBeGreaterThan(0.6)
   })
 })

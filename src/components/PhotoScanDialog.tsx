@@ -202,7 +202,7 @@ export function PhotoScanDialog({ onClose }: { onClose: () => void }) {
 
         <p className="mt-4 text-xs leading-relaxed text-neutral-500">
           写真は端末の外に送信されず、AIの処理もブラウザ内で行います。初回のみAIモデル(家具検出・奥行き推定の計約50MB、Hugging Faceから)をダウンロードします。
-          部屋全体が写るように、少し離れて横向きで撮るのがおすすめです。
+          部屋全体が写るように、少し離れて横向きで撮るのがおすすめです。処理はスマホで1分ほどかかることがあります。
         </p>
       </div>
     </div>

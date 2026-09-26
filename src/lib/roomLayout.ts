@@ -16,6 +16,8 @@ export interface LayoutFurniture {
   rotationY: number
   size: Vec3
   color: string
+  /** 標準寸法に収める前の、推定そのままの高さ(縮尺の補正に使う) */
+  measuredHeight?: number
 }
 
 export interface RoomLayout {
@@ -47,6 +49,12 @@ export interface LayoutOptions {
 type V3 = [number, number, number]
 
 const DEFAULT_WALL_HEIGHT = 2.4
+
+/** 床から浮かせて置いてよい家具と、その高さの上限(m) */
+const ELEVATED_MAX: Partial<Record<FurnitureKind, number>> = { tv: 2.2, microwave: 1.8, plant: 1.6 }
+
+/** 推定した寸法を、種類ごとの標準寸法の lo〜hi 倍に収める */
+const clampToPrior = (value: number, prior: number, lo: number, hi: number) => Math.min(prior * hi, Math.max(prior * lo, value))
 
 // ---- 小さなベクトル・統計ヘルパー ----
 const sub = (a: V3, b: V3): V3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
@@ -186,7 +194,9 @@ export function estimateRoomLayout(
   // 高さがほぼ決まっている家具(椅子・テーブル等)があれば、その実測との比で「撮影した高さ」の仮定を直して推定し直す
   // (壁の検出などは実寸で判定しているので、縮尺を合わせてからもう一度計算する)
   const reliable: FurnitureKind[] = ['chair', 'table', 'sofa', 'toilet', 'sink', 'oven', 'fridge']
-  const ratios = first.furniture.filter((f) => reliable.includes(f.kind) && f.position[1] === 0).map((f) => FURNITURE[f.kind].size[1] / f.size[1])
+  const ratios = first.furniture
+    .filter((f) => reliable.includes(f.kind) && f.position[1] === 0)
+    .map((f) => FURNITURE[f.kind].size[1] / (f.measuredHeight ?? f.size[1]))
   if (ratios.length === 0) return first
   const k = Math.min(2, Math.max(0.5, percentile(ratios, 0.5)))
   if (Math.abs(k - 1) < 0.05) return first
@@ -215,7 +225,8 @@ function estimateOnce(
   options: LayoutOptions,
 ): RoomLayout {
   const cameraHeight = options.cameraHeight ?? 1.4
-  const minScore = options.minScore ?? 0.4
+  // 実写の写真(COCO)で正解と比べて決めた値: 0.6 で検出の正しさ 83%・見つけられた割合 67%(0.4 だと正しさ 44%)
+  const minScore = options.minScore ?? 0.6
   const { gw, gh } = gridSize(imageSize, options.gridColumns)
   const aspect = imageSize.width / imageSize.height
   const tanLong = Math.tan(Math.atan(18 / options.focalLength35mm))
@@ -334,6 +345,10 @@ function estimateOnce(
   let minX = walls.left ? leftX! : (percentile(fx, 0.02) || -2) - 0.3
   let maxX = walls.right ? rightX! : (percentile(fx, 0.98) || 2) + 0.3
   let minZ = walls.back ? backZ! : (percentile(fz, 0.02) || -4) - 0.3
+  // 奥の壁が見えない写真などで部屋が際限なく広がらないよう、撮影位置から左右5m・奥8mまでにする
+  minX = Math.max(minX, -5)
+  maxX = Math.min(maxX, 5)
+  minZ = Math.max(minZ, -8)
   const maxZ = 0.6 // 撮影位置の少し手前まで床を伸ばす
   if (maxX - minX < 1.5) {
     const c = (maxX + minX) / 2
@@ -395,8 +410,12 @@ function estimateOnce(
     } else {
       const t = near / Math.max(horizontal(bottom), 1e-6)
       front = [cameraPos[0] + bottom[0] * t, 0, cameraPos[2] + bottom[2] * t]
-      base = Math.max(0, cameraPos[1] + bottom[1] * t)
-      if (base < 0.25) base = 0
+      // 床から浮いた所に置くのが自然な物(壁掛けのテレビ、棚の上の植物など)だけ持ち上げる。ほかは床に置く
+      const maxBase = ELEVATED_MAX[kind]
+      if (maxBase) {
+        base = Math.min(maxBase, Math.max(0, cameraPos[1] + bottom[1] * t))
+        if (base < 0.25) base = 0
+      }
     }
     const frontDist = horizontal(sub(front, cameraPos))
 
@@ -408,12 +427,14 @@ function estimateOnce(
     const midY = (ymin + ymax) / 2
     const left = at(rayDir(xmin, midY))
     const right = at(rayDir(xmax, midY))
-    const width = Math.min(4, Math.max(0.2, Math.hypot(right[0] - left[0], right[2] - left[2])))
+    const measuredWidth = Math.hypot(right[0] - left[0], right[2] - left[2])
     // ソファを椅子と見間違えることがあるので、幅が椅子にしては広すぎればソファとみなす
-    if (kind === 'chair' && width > 1.1) {
+    if (kind === 'chair' && measuredWidth > 1.1) {
       kind = 'sofa'
       prior = FURNITURE[kind]
     }
+    // 写真の端で切れている・一部が隠れている家具もあるので、種類ごとの標準寸法から大きく外れないようにする
+    const width = clampToPrior(measuredWidth, prior.size[0], 0.6, 1.6)
     // 高さ: 2通りで測って幾何平均をとる
     // - 箱の上端の視線が正面の距離で通る高さ(見下ろした写真では、奥の上端を拾って高めに出る)
     // - 家具の点のうち一番高い所(AIの奥行きは小物を平たくしがちで、低めに出る)
@@ -421,7 +442,8 @@ function estimateOnce(
     const byRay = Math.max(0.1, top[1] - base)
     const tall = inner.filter((i) => dist(i) <= near * 1.4).map((i) => world[i][1])
     const byPoints = Math.max(0.1, percentile(tall, 0.97) - base)
-    const height = Math.min(2.6, Number.isFinite(byPoints) ? Math.sqrt(byRay * Math.min(byPoints, byRay)) : byRay)
+    const measuredHeight = Number.isFinite(byPoints) ? Math.sqrt(byRay * Math.min(byPoints, byRay)) : byRay
+    const height = clampToPrior(measuredHeight, prior.size[1], 0.7, 1.4)
     // 奥行き: 見えている面の奥行きの広がりと、種類ごとの標準的な比率の間をとる
     const spread = percentile(body.map(dist), 0.9) - percentile(body.map(dist), 0.1)
     const typical = prior.size[2] * (width / prior.size[0]) ** 0.5
@@ -442,6 +464,7 @@ function estimateOnce(
       rotationY: 0,
       size: [width, height, depthSize].map((v) => Math.round(v * 1000) / 1000) as Vec3,
       color: medianColor(colors, body, prior.color),
+      measuredHeight,
     })
   }
 
