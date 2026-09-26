@@ -348,14 +348,11 @@ function estimateOnce(
   const rayDir = (px: number, py: number) => normalize(sub(toWorld(ray(px, py)), cameraPos))
   const horizontal = (v: V3) => Math.hypot(v[0], v[2])
 
-  const counts = new Map<FurnitureKind, number>()
-  const total = new Map<FurnitureKind, number>()
-  for (const d of pieces) total.set(COCO_TO_KIND[d.label], (total.get(COCO_TO_KIND[d.label]) ?? 0) + 1)
 
   const furniture: LayoutFurniture[] = []
   for (const d of pieces) {
-    const kind = COCO_TO_KIND[d.label]
-    const prior = FURNITURE[kind]
+    let kind = COCO_TO_KIND[d.label]
+    let prior = FURNITURE[kind]
     const { xmin, xmax, ymin, ymax } = d.box
     const cx = (xmin + xmax) / 2
 
@@ -398,6 +395,11 @@ function estimateOnce(
     const left = at(rayDir(xmin, midY))
     const right = at(rayDir(xmax, midY))
     const width = Math.min(4, Math.max(0.2, Math.hypot(right[0] - left[0], right[2] - left[2])))
+    // ソファを椅子と見間違えることがあるので、幅が椅子にしては広すぎればソファとみなす
+    if (kind === 'chair' && width > 1.1) {
+      kind = 'sofa'
+      prior = FURNITURE[kind]
+    }
     // 高さ: 2通りで測って幾何平均をとる
     // - 箱の上端の視線が正面の距離で通る高さ(見下ろした写真では、奥の上端を拾って高めに出る)
     // - 家具の点のうち一番高い所(AIの奥行きは小物を平たくしがちで、低めに出る)
@@ -419,16 +421,23 @@ function estimateOnce(
     position[0] = Math.min(maxX - width / 2, Math.max(minX + width / 2, position[0]))
     position[2] = Math.min(maxZ, Math.max(minZ + depthSize / 2, position[2]))
 
-    const n = (counts.get(kind) ?? 0) + 1
-    counts.set(kind, n)
     furniture.push({
-      name: (total.get(kind) ?? 1) > 1 ? `${prior.label}${n}` : prior.label,
+      name: prior.label,
       kind,
       position: position.map((v) => Math.round(v * 1000) / 1000) as Vec3,
       rotationY: 0,
       size: [width, height, depthSize].map((v) => Math.round(v * 1000) / 1000) as Vec3,
       color: medianColor(colors, body, prior.color),
     })
+  }
+
+  // 同じ種類が複数あれば「椅子1」「椅子2」のように番号を付ける
+  const counts = new Map<FurnitureKind, number>()
+  for (const f of furniture) {
+    const same = furniture.filter((g) => g.kind === f.kind).length
+    const n = (counts.get(f.kind) ?? 0) + 1
+    counts.set(f.kind, n)
+    if (same > 1) f.name = `${f.name}${n}`
   }
 
   return { minX, maxX, minZ, maxZ, height, walls, floorColor, wallColor, furniture }

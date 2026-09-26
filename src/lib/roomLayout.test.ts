@@ -128,4 +128,13 @@ describe('estimateRoomLayout on an eye-level photo', () => {
     // 椅子は右手前、ソファは左奥
     expect(chair.position[0]).toBeGreaterThan(sofa.position[0])
   })
+
+  it('treats a sofa-sized "chair" detection as a sofa', () => {
+    // 描画のわずかな違いでソファが「椅子」と判定されることがある(実際にCIで発生)
+    const relabelled = meta.detections.map((d: { label: string }) => (d.label === 'sofa' ? { ...d, label: 'chair', score: 0.3 } : d))
+    const alt = estimateRoomLayout(depth, { width: meta.imageWidth, height: meta.imageHeight }, relabelled, null, {
+      focalLength35mm: 26,
+    })
+    expect(alt.furniture.map((f) => f.name).sort()).toEqual(['ソファ', '椅子'].sort())
+  })
 })
