@@ -3,9 +3,9 @@ import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Grid, OrbitControls, TransformControls } from '@react-three/drei'
 import * as THREE from 'three'
 import { useEditorStore } from '../store/editorStore'
-import { applyObjectState, disposeObject, extractEditableObjects, isHidden, parseGLB } from '../three/gltf'
-import { gizmoState, meshRegistry, thumbnailCapture } from '../three/registry'
-import { PHOTO_CAMERA_NAME } from '../three/photoMesh'
+import { applyObjectState, disposeObject, extractEditableObjects, isHidden, parseGLB, prepareEditableMesh } from '../three/gltf'
+import { gizmoState, meshRegistry, roomScene, thumbnailCapture } from '../three/registry'
+import { createFurnitureMesh } from '../three/furniture'
 import type { RoomObject } from '../types'
 
 /** ドラッグ(視点操作)とクリックを区別するしきい値(px) */
@@ -122,6 +122,7 @@ function RoomModel({ onLoading, onLoaded, onError }: RoomModelProps) {
         nodes.forEach((mesh, id) => meshRegistry.set(id, mesh))
         applied.current = {}
         useEditorStore.getState().initObjects(base)
+        roomScene.current = group
         setScene(group)
         callbacks.current.onLoaded()
       })
@@ -132,6 +133,7 @@ function RoomModel({ onLoading, onLoaded, onError }: RoomModelProps) {
     return () => {
       cancelled = true
       meshRegistry.clear()
+      roomScene.current = null
       setScene(null)
       if (loaded) disposeObject(loaded)
     }
@@ -142,6 +144,13 @@ function RoomModel({ onLoading, onLoaded, onError }: RoomModelProps) {
     if (!scene) return
     for (const [id, obj] of Object.entries(objects)) {
       if (applied.current[id] === obj) continue
+      // エディタで追加した家具は、初めて出てきたときにテンプレートから形を作る
+      if (obj.template && !meshRegistry.has(id)) {
+        const mesh = createFurnitureMesh(obj.template.kind, obj.template.size, obj.template.color, obj.name)
+        prepareEditableMesh(mesh, id)
+        scene.add(mesh)
+        meshRegistry.set(id, mesh)
+      }
       const mesh = meshRegistry.get(id)
       if (mesh) applyObjectState(mesh, obj)
     }
@@ -191,23 +200,10 @@ function FrameCamera({ target }: { target: THREE.Object3D }) {
     const persp = camera as THREE.PerspectiveCamera
     persp.near = Math.max(radius / 1000, 0.001)
     persp.far = radius * 100
-
-    // 写真スキャンのGLBには撮影時のカメラが入っているので、写真と同じ視点から見せる
-    const photoCamera = target.getObjectByName(PHOTO_CAMERA_NAME) as THREE.PerspectiveCamera | undefined
-    if (photoCamera?.isPerspectiveCamera) {
-      target.updateMatrixWorld()
-      const eye = photoCamera.getWorldPosition(new THREE.Vector3())
-      const forward = photoCamera.getWorldDirection(new THREE.Vector3())
-      persp.fov = photoCamera.fov
-      persp.position.copy(eye)
-      // 回転の中心は、視線の先で部屋の中心と同じくらいの距離の点
-      controls.target.copy(eye).addScaledVector(forward, Math.max(center.clone().sub(eye).dot(forward), 0.5))
-    } else {
-      const distance = radius / Math.sin(THREE.MathUtils.degToRad(persp.fov / 2))
-      const dir = new THREE.Vector3(0.6, 0.7, 1).normalize()
-      persp.position.copy(center).addScaledVector(dir, distance * 0.9)
-      controls.target.copy(center)
-    }
+    const distance = radius / Math.sin(THREE.MathUtils.degToRad(persp.fov / 2))
+    const dir = new THREE.Vector3(0.6, 0.7, 1).normalize()
+    persp.position.copy(center).addScaledVector(dir, distance * 0.9)
+    controls.target.copy(center)
     persp.updateProjectionMatrix()
     controls.update()
   }, [target, camera, controls])

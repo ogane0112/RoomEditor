@@ -1,4 +1,13 @@
+import type { FurnitureKind } from './three/furniture'
+
 export type Vec3 = [number, number, number]
+
+/** エディタで追加した家具(GLBには含まれず、この情報からテンプレートの形を作る) */
+export interface FurnitureTemplate {
+  kind: FurnitureKind
+  size: Vec3
+  color: string
+}
 
 /** GLB内の1ノード(メッシュ)に対する編集状態 */
 export interface RoomObject {
@@ -11,6 +20,8 @@ export interface RoomObject {
   /** 上書きした色(null は元の色を使用) */
   color: string | null
   deleted: boolean
+  /** エディタで追加した家具のみ */
+  template?: FurnitureTemplate
 }
 
 /** IndexedDBに保存する部屋のメタ情報 + 編集状態(GLB本体は別ストア) */

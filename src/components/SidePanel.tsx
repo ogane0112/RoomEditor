@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import { useEditorStore } from '../store/editorStore'
 import { meshRegistry } from '../three/registry'
 import { originalColorHex } from '../three/gltf'
+import { FURNITURE, type FurnitureKind } from '../three/furniture'
 import type { RoomObject } from '../types'
 
 const PALETTE = ['#f5f5f4', '#1c1917', '#78716c', '#b45309', '#7c2d12', '#b91c1c', '#15803d', '#1d4ed8', '#7e22ce', '#f59e0b']
@@ -25,6 +26,7 @@ export function SidePanel() {
           </p>
         )}
       </section>
+      <AddFurniture />
       <ObjectList open={listOpen} onToggle={() => setListOpen((v) => !v)} />
     </aside>
   )
@@ -50,9 +52,13 @@ function ObjectDetails({ obj }: { obj: RoomObject }) {
   return (
     <div className="space-y-3 md:space-y-4">
       <div>
-        <div className="truncate text-base font-medium text-white" title={obj.name}>
-          {obj.name}
-        </div>
+        <input
+          className="w-full rounded border border-transparent bg-transparent px-1 py-0.5 -mx-1 text-base font-medium text-white hover:border-neutral-600 focus:border-sky-500 focus:outline-none"
+          value={obj.name}
+          onChange={(e) => useEditorStore.getState().renameObject(obj.id, e.target.value)}
+          aria-label="オブジェクトの名前"
+          title="クリックして名前を変更"
+        />
         <div className="hidden text-xs text-neutral-500 md:block">ID: {obj.id}</div>
       </div>
 
@@ -111,6 +117,41 @@ function ObjectDetails({ obj }: { obj: RoomObject }) {
           削除<span className="hidden md:inline"> (Delete)</span>
         </button>
       )}
+    </div>
+  )
+}
+
+/** 検出されなかった家具などを、種類を選んで部屋に追加する */
+function AddFurniture() {
+  const add = (kind: FurnitureKind) => {
+    const { objects, addObject } = useEditorStore.getState()
+    const info = FURNITURE[kind]
+    const sameKind = Object.values(objects).filter((o) => o.template?.kind === kind || o.name.startsWith(info.label)).length
+    addObject({
+      id: `f-${crypto.randomUUID()}`,
+      name: sameKind ? `${info.label}${sameKind + 1}` : info.label,
+      position: [0, info.elevation ?? 0, 0],
+      rotation: [0, 0, 0],
+      color: null,
+      deleted: false,
+      template: { kind, size: info.size, color: info.color },
+    })
+  }
+  return (
+    <div className="border-b border-neutral-700 px-3 py-2 md:px-4 md:py-3">
+      <select
+        className="w-full rounded border border-neutral-600 bg-neutral-700 px-2 py-1.5 text-neutral-100"
+        value=""
+        onChange={(e) => e.target.value && add(e.target.value as FurnitureKind)}
+        aria-label="家具を追加"
+      >
+        <option value="">＋ 家具を追加…</option>
+        {(Object.keys(FURNITURE) as FurnitureKind[]).map((kind) => (
+          <option key={kind} value={kind}>
+            {FURNITURE[kind].label}
+          </option>
+        ))}
+      </select>
     </div>
   )
 }

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useEditorStore } from '../store/editorStore'
 import { confirmDiscard, isGlbFile, openNewRoom, saveActiveRoom } from '../lib/rooms'
+import { roomScene } from '../three/registry'
+import { exportGLB } from '../three/roomScene'
 
 export function Toolbar() {
   const room = useEditorStore((s) => s.room)
@@ -21,6 +23,27 @@ export function Toolbar() {
       setMessage(`保存に失敗しました: ${e instanceof Error ? e.message : String(e)}`)
     } finally {
       setSaving(false)
+      setTimeout(() => setMessage(null), 2500)
+    }
+  }
+
+  const exportRoom = async () => {
+    const root = roomScene.current
+    if (!room || !root) return
+    try {
+      useEditorStore.getState().commitPreview()
+      // 画面に見えている状態(移動・色変更を反映、削除した物は除く)をそのまま書き出す
+      const blob = await exportGLB(root)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${room.name || 'room'}.glb`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 10_000)
+    } catch (e) {
+      setMessage(`書き出しに失敗しました: ${e instanceof Error ? e.message : String(e)}`)
       setTimeout(() => setMessage(null), 2500)
     }
   }
@@ -51,6 +74,9 @@ export function Toolbar() {
       <div className="hidden md:contents">
         <ImportButton />
       </div>
+      <button className="btn" onClick={exportRoom} disabled={!room} title="編集した部屋を .glb ファイルとして保存" aria-label="GLB書き出し">
+        ⤓<span className="hidden md:inline"> GLB書き出し</span>
+      </button>
 
       <div className="mx-1 h-6 w-px bg-neutral-600 md:mx-2" />
 

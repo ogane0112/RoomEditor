@@ -42,6 +42,10 @@ export interface EditorState {
   renameActiveRoom: (name: string) => void
   select: (id: string | null) => void
   setTransformMode: (mode: TransformMode) => void
+  /** 家具を追加する(元に戻すと非表示になる) */
+  addObject: (obj: RoomObject) => void
+  /** 名前を変える(履歴には積まない) */
+  renameObject: (id: string, name: string) => void
   /** 変更を即時確定し履歴に積む */
   updateObject: (id: string, patch: ObjectPatch) => void
   /** 履歴に積まずに変更する(連続操作用)。commitPreview で1件の履歴としてまとめる */
@@ -108,9 +112,12 @@ export const useEditorStore = create<EditorState>()((set, get) => {
       const objects: Record<string, RoomObject> = {}
       for (const obj of base) {
         const saved = overrides.get(obj.id)
-        objects[obj.id] = saved ? { ...saved, name: obj.name } : obj
+        objects[obj.id] = saved ? { ...saved, name: saved.name || obj.name } : obj
       }
-      set({ objects, objectOrder: base.map((o) => o.id), pendingOverrides: null })
+      // エディタで追加した家具は GLB に含まれないので、保存データから復元する
+      const added = [...overrides.values()].filter((o) => o.template && !objects[o.id])
+      for (const obj of added) objects[obj.id] = obj
+      set({ objects, objectOrder: [...base.map((o) => o.id), ...added.map((o) => o.id)], pendingOverrides: null })
     },
 
     renameActiveRoom: (name) =>
@@ -122,6 +129,20 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     },
 
     setTransformMode: (transformMode) => set({ transformMode }),
+
+    addObject: (obj) => {
+      get().commitPreview()
+      // 非表示の状態で登録してから表示に切り替えることで、「追加」を元に戻せる操作にする
+      set((s) => ({
+        objects: { ...s.objects, [obj.id]: { ...obj, deleted: true } },
+        objectOrder: [...s.objectOrder, obj.id],
+      }))
+      get().updateObject(obj.id, { deleted: false })
+      set({ selectedId: obj.id })
+    },
+
+    renameObject: (id, name) =>
+      set((s) => (s.objects[id] ? { objects: { ...s.objects, [id]: { ...s.objects[id], name } }, dirty: true } : {})),
 
     updateObject: (id, patch) => {
       get().commitPreview()
@@ -162,7 +183,8 @@ export const useEditorStore = create<EditorState>()((set, get) => {
       const entry = undoStack.at(-1)
       if (!entry) return
       set({
-        objects: { ...objects, [entry.id]: entry.before },
+        // 名前の変更は履歴の対象外なので、今の名前のまま戻す
+        objects: { ...objects, [entry.id]: { ...entry.before, name: objects[entry.id]?.name ?? entry.before.name } },
         undoStack: undoStack.slice(0, -1),
         redoStack: [...redoStack, entry],
         dirty: true,
@@ -175,7 +197,7 @@ export const useEditorStore = create<EditorState>()((set, get) => {
       const entry = redoStack.at(-1)
       if (!entry) return
       set({
-        objects: { ...objects, [entry.id]: entry.after },
+        objects: { ...objects, [entry.id]: { ...entry.after, name: objects[entry.id]?.name ?? entry.after.name } },
         undoStack: [...undoStack, entry],
         redoStack: redoStack.slice(0, -1),
         dirty: true,

@@ -1,4 +1,4 @@
-// 「写真から3D化」を本物のAIモデルで端から端まで確認するE2Eテスト。
+// 「写真から3D化」を本物のAIモデル(家具検出・奥行き推定)で端から端まで確認するE2Eテスト。
 // 事前に `npm run build && npx vite preview --port 4173` でアプリを起動しておく。
 // テスト用の写真には、サンプルの部屋を描画したスクリーンショットを使う。
 import { chromium } from 'playwright'
@@ -51,7 +51,10 @@ try {
   console.log('hosts:', [...hosts])
   await page.screenshot({ path: 'e2e-photo-scan.png' })
 
-  if (objects[0] !== '背景') throw new Error('background part missing')
+  // 床・壁と、検出された家具(椅子・ソファ等)が名前付きの物として並ぶ
+  if (objects[0] !== '床') throw new Error('floor missing')
+  const furniture = objects.filter((o) => !['床', '奥の壁', '左の壁', '右の壁'].includes(o))
+  if (furniture.length === 0) throw new Error('no furniture detected')
   if ([...hosts].some((h) => h.includes('jsdelivr'))) throw new Error('ONNX Runtime was loaded from a CDN')
   if (errors.length) throw new Error(`page errors: ${errors.join('\n')}`)
   console.log('OK')

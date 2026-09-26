@@ -28,7 +28,8 @@ describe('editorStore', () => {
       [{ ...base('a'), name: 'old', color: '#ff0000', deleted: true }],
     )
     store().initObjects([base('a'), base('b')])
-    expect(store().objects.a).toMatchObject({ name: 'a', color: '#ff0000', deleted: true })
+    // 保存した名前(ユーザーが付けた名前)を優先する
+    expect(store().objects.a).toMatchObject({ name: 'old', color: '#ff0000', deleted: true })
     expect(store().objects.b.color).toBeNull()
     expect(store().objectOrder).toEqual(['a', 'b'])
   })
@@ -74,5 +75,45 @@ describe('editorStore', () => {
     store().undo()
     store().updateObject('b', { rotation: [0, 1, 0] })
     expect(store().redoStack).toHaveLength(0)
+  })
+
+  it('adds furniture as an undoable operation and restores it from saved data', () => {
+    const chair: RoomObject = {
+      ...base('f-1'),
+      name: '椅子',
+      template: { kind: 'chair', size: [0.5, 0.9, 0.5], color: '#a0522d' },
+    }
+    store().addObject(chair)
+    expect(store().objects['f-1'].deleted).toBe(false)
+    expect(store().objectOrder).toEqual(['a', 'b', 'f-1'])
+    expect(store().selectedId).toBe('f-1')
+
+    store().undo()
+    expect(store().objects['f-1'].deleted).toBe(true)
+    store().redo()
+    expect(store().objects['f-1'].deleted).toBe(false)
+
+    // 保存→再読込: GLBには無い家具も復元される
+    const saved = Object.values(store().objects)
+    store().openRoom(
+      { id: 'r', name: 'r', glbFileName: 'r.glb', glbData: new Blob(), createdAt: '', persisted: true },
+      saved,
+    )
+    store().initObjects([base('a'), base('b')])
+    expect(store().objectOrder).toEqual(['a', 'b', 'f-1'])
+    expect(store().objects['f-1'].template?.kind).toBe('chair')
+  })
+
+  it('renames objects without adding history', () => {
+    store().updateObject('a', { color: '#123456' })
+    store().renameObject('a', 'ソファ')
+    expect(store().objects.a.name).toBe('ソファ')
+    expect(store().undoStack).toHaveLength(1)
+    expect(store().dirty).toBe(true)
+    // 元に戻しても名前はそのまま
+    store().undo()
+    expect(store().objects.a).toMatchObject({ name: 'ソファ', color: null })
+    store().redo()
+    expect(store().objects.a).toMatchObject({ name: 'ソファ', color: '#123456' })
   })
 })
