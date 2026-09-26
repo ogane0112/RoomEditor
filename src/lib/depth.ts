@@ -28,6 +28,9 @@ export async function estimateDepth(image: HTMLCanvasElement, onProgress: (p: Mo
     if (v < min) min = v
     if (v > max) max = v
   }
+  if (!Number.isFinite(min) || !Number.isFinite(max) || max - min < 1e-6) {
+    throw new Error('奥行きをうまく推定できませんでした。別の写真で試してください')
+  }
   const range = max - min || 1
   const data = new Float32Array(raw.length)
   for (let i = 0; i < raw.length; i++) data[i] = (raw[i] - min) / range

@@ -17,7 +17,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium webkit
       - run: npm run build
       - name: Run photo scan E2E
         run: |
@@ -25,11 +25,12 @@ jobs:
           npx vite --port 5173 --strictPort &
           for i in $(seq 1 30); do curl -sf http://localhost:4173/ >/dev/null && curl -sf http://localhost:5173/ >/dev/null && break; sleep 1; done
           node scripts/e2e-photo-scan.mjs
-          echo "--- WebGPU ---"
           E2E_WEBGPU=1 node scripts/e2e-photo-scan.mjs
+          # iPhone の Safari と同じエンジン(WebKit)・画面サイズで
+          BROWSER=webkit DEVICE=iphone node scripts/e2e-photo-scan.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: e2e-screenshot
-          path: e2e-photo-scan.png
+          path: e2e-*.png
           if-no-files-found: ignore

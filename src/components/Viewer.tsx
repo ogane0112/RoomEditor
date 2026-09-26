@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Component, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Grid, OrbitControls, TransformControls } from '@react-three/drei'
 import * as THREE from 'three'
@@ -12,48 +12,62 @@ import type { RoomObject } from '../types'
 const CLICK_TOLERANCE = 4
 
 export function Viewer() {
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error' | 'lost'>('loading')
   const [error, setError] = useState<string | null>(null)
 
   return (
     <div className="relative h-full w-full bg-neutral-900">
-      <Canvas
-        shadows={false}
-        dpr={[1, 2]}
-        camera={{ position: [4, 4, 6], fov: 50, near: 0.01, far: 1000 }}
-        onPointerMissed={() => {
-          if (!gizmoState.active) useEditorStore.getState().select(null)
-        }}
-      >
-        <color attach="background" args={['#1f2328']} />
-        <hemisphereLight args={['#ffffff', '#444444', 1.6]} />
-        <directionalLight position={[5, 10, 7]} intensity={1.8} />
-        <Grid
-          infiniteGrid
-          cellSize={0.5}
-          sectionSize={2.5}
-          cellColor="#3a3f46"
-          sectionColor="#555c66"
-          fadeDistance={40}
-          position={[0, -0.001, 0]}
-        />
-        <RoomModel
-          onLoaded={() => setStatus('ready')}
-          onError={(e) => {
-            setStatus('error')
-            setError(e)
+      <ViewerErrorBoundary>
+        <Canvas
+          onCreated={({ gl }) => {
+            // スマホでメモリが足りなくなると 3D 表示(WebGL)が止まることがある。黙って真っ暗にせず知らせる
+            gl.domElement.addEventListener('webglcontextlost', () => setStatus('lost'))
           }}
-          onLoading={() => setStatus('loading')}
-        />
-        <SelectionControls />
-        <OrbitControls makeDefault enableDamping dampingFactor={0.15} />
-        <ThumbnailCapturer />
-      </Canvas>
+          shadows={false}
+          dpr={[1, 2]}
+          camera={{ position: [4, 4, 6], fov: 50, near: 0.01, far: 1000 }}
+          onPointerMissed={() => {
+            if (!gizmoState.active) useEditorStore.getState().select(null)
+          }}
+        >
+          <color attach="background" args={['#1f2328']} />
+          <hemisphereLight args={['#ffffff', '#444444', 1.6]} />
+          <directionalLight position={[5, 10, 7]} intensity={1.8} />
+          <Grid
+            infiniteGrid
+            cellSize={0.5}
+            sectionSize={2.5}
+            cellColor="#3a3f46"
+            sectionColor="#555c66"
+            fadeDistance={40}
+            position={[0, -0.001, 0]}
+          />
+          <RoomModel
+            onLoaded={() => setStatus('ready')}
+            onError={(e) => {
+              setStatus('error')
+              setError(e)
+            }}
+            onLoading={() => setStatus('loading')}
+          />
+          <SelectionControls />
+          <OrbitControls makeDefault enableDamping dampingFactor={0.15} />
+          <ThumbnailCapturer />
+        </Canvas>
+      </ViewerErrorBoundary>
 
       {status === 'loading' && (
         <Overlay>
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-500 border-t-white" />
           <p>GLBを読み込み中…</p>
+        </Overlay>
+      )}
+      {status === 'lost' && (
+        <Overlay>
+          <p className="font-semibold text-red-300">3D表示が中断されました</p>
+          <p className="max-w-md px-4 text-sm text-neutral-400">
+            端末のメモリが不足した可能性があります。保存してからページを再読み込みしてください。
+          </p>
         </Overlay>
       )}
       {status === 'error' && (
@@ -65,6 +79,23 @@ export function Viewer() {
       <HelpHint />
     </div>
   )
+}
+
+/** 3D表示(WebGL)を始められなかったときに、真っ白・真っ暗にせず理由を表示する */
+class ViewerErrorBoundary extends Component<{ children: ReactNode }, { error: string | null }> {
+  state = { error: null as string | null }
+  static getDerivedStateFromError(e: unknown) {
+    return { error: e instanceof Error ? e.message : String(e) }
+  }
+  render() {
+    if (!this.state.error) return this.props.children
+    return (
+      <Overlay>
+        <p className="font-semibold text-red-300">3D表示を開始できませんでした</p>
+        <p className="max-w-md px-4 text-sm text-neutral-400">{this.state.error}</p>
+      </Overlay>
+    )
+  }
 }
 
 function Overlay({ children }: { children: React.ReactNode }) {
@@ -197,6 +228,7 @@ function FrameCamera({ target }: { target: THREE.Object3D }) {
     if (box.isEmpty()) return
     const center = box.getCenter(new THREE.Vector3())
     const radius = box.getBoundingSphere(new THREE.Sphere()).radius || 1
+    if (!Number.isFinite(radius) || !Number.isFinite(center.x + center.y + center.z)) return
     const persp = camera as THREE.PerspectiveCamera
     persp.near = Math.max(radius / 1000, 0.001)
     persp.far = radius * 100

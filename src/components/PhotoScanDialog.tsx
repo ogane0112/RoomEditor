@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { ModelProgress } from '../lib/ai'
+import { releaseModels, type ModelProgress } from '../lib/ai'
 import { estimateDepth } from '../lib/depth'
 import { detectObjects } from '../lib/detect'
 import { openNewRoom } from '../lib/rooms'
@@ -98,6 +98,8 @@ export function PhotoScanDialog({ onClose }: { onClose: () => void }) {
       const scene = buildRoomScene(layout)
       const glb = await exportGLB(scene)
       disposeScene(scene)
+      // AIモデルのメモリを空けてから3D表示に移る(スマホでメモリ不足になり表示されないのを防ぐ)
+      await releaseModels()
 
       const stamp = new Date().toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
       openNewRoom(glb, `写真から作った部屋 ${stamp.replace(/\//g, '-')}.glb`)

@@ -80,8 +80,9 @@ function loadModel<T>(task: Task, modelId: string, device: Device, onProgress: (
 }
 
 /**
- * モデルを読み込んで推論する。WebGPU が使えれば GPU で動かし、
- * GPU での読み込み・推論に失敗したら(GPU版の実行環境が未対応の処理を含むモデルなど)CPU でやり直す。
+ * モデルを読み込んで推論する。既定は CPU(wasm)。
+ * gpu: true なら WebGPU が使えるとき GPU で動かし、失敗したら(GPU版の実行環境が未対応の処理を含むモデルなど)CPU でやり直す。
+ * (GPU の半精度計算は端末によって結果が壊れることがあり、iPhone で確かめられていないため既定では使わない)
  */
 export async function runModel<T, R>(
   task: Task,
@@ -91,7 +92,7 @@ export async function runModel<T, R>(
   options: { gpu?: boolean } = {},
 ): Promise<R> {
   const key = `${task}:${modelId}`
-  if (options.gpu !== false && !cpuOnly.has(key) && (await hasWebGPU())) {
+  if (options.gpu === true && !cpuOnly.has(key) && (await hasWebGPU())) {
     try {
       return await run(await loadModel<T>(task, modelId, 'webgpu', onProgress))
     } catch (e) {
@@ -107,4 +108,18 @@ export async function runModel<T, R>(
     throw new Error(`AIモデルを読み込めませんでした。インターネット接続を確認してください(${message})`)
   }
   return run(model)
+}
+
+/** 読み込んだモデルを破棄してメモリを空ける(スマホで 3D 表示に使うメモリを確保するため)。次回はブラウザのキャッシュから読み直す */
+export async function releaseModels() {
+  const models = [...cache.values()]
+  cache.clear()
+  for (const promise of models) {
+    try {
+      const model = (await promise) as { dispose?: () => Promise<unknown> }
+      await model.dispose?.()
+    } catch {
+      // 読み込みに失敗したものは何もしない
+    }
+  }
 }

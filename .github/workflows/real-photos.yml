@@ -1,0 +1,53 @@
+name: Real photos (COCO)
+
+# 実写の室内写真(COCO val2017)で「写真から3D化」を確かめる。
+# - 本物のAIの出力(奥行き・家具検出)をテスト素材として src/three/__fixtures__/real/ にコミットする(写真は含めない)
+# - 実写の写真で、Chromium と WebKit(iPhone の Safari と同じエンジン)の E2E を走らせる
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/create-from-reference-mql44v]
+    paths: ['scripts/real-photos/**', '.github/workflows/real-photos.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  real-photos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npm run build
+      - name: Pick indoor photos from COCO val2017
+        run: |
+          curl -sSLo ann.zip http://images.cocodataset.org/annotations/annotations_trainval2017.zip
+          unzip -p ann.zip annotations/instances_val2017.json > instances_val2017.json
+          node scripts/real-photos/select-coco.mjs instances_val2017.json real-photos 8
+      - name: Dump real model outputs as fixtures
+        run: node scripts/real-photos/dump-fixtures.mjs real-photos src/three/__fixtures__/real
+      - name: Commit fixtures
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/three/__fixtures__/real
+          git diff --cached --quiet || (git commit -m "Update real-photo fixtures (COCO val2017)" && git pull --rebase origin ${GITHUB_REF_NAME} && git push origin HEAD:${GITHUB_REF_NAME})
+      - name: E2E with real photos
+        if: always()
+        run: |
+          npx vite preview --port 4173 --strictPort &
+          npx vite --port 5173 --strictPort &
+          for i in $(seq 1 30); do curl -sf http://localhost:4173/ >/dev/null && curl -sf http://localhost:5173/ >/dev/null && break; sleep 1; done
+          status=0
+          for f in $(ls real-photos/*.jpg | head -3); do
+            PHOTO=$f node scripts/e2e-photo-scan.mjs || status=1
+          done
+          f=$(ls real-photos/*.jpg | head -1)
+          BROWSER=webkit DEVICE=iphone PHOTO=$f node scripts/e2e-photo-scan.mjs || status=1
+          exit $status

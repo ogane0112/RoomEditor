@@ -181,7 +181,7 @@ export function estimateRoomLayout(
   colors: Uint8ClampedArray | null,
   options: LayoutOptions,
 ): RoomLayout {
-  const first = estimateOnce(depth, imageSize, detections, colors, options)
+  const first = checkFinite(estimateOnce(depth, imageSize, detections, colors, options))
   if (options.autoScale === false) return first
   // 高さがほぼ決まっている家具(椅子・テーブル等)があれば、その実測との比で「撮影した高さ」の仮定を直して推定し直す
   // (壁の検出などは実寸で判定しているので、縮尺を合わせてからもう一度計算する)
@@ -190,7 +190,21 @@ export function estimateRoomLayout(
   if (ratios.length === 0) return first
   const k = Math.min(2, Math.max(0.5, percentile(ratios, 0.5)))
   if (Math.abs(k - 1) < 0.05) return first
-  return estimateOnce(depth, imageSize, detections, colors, { ...options, cameraHeight: (options.cameraHeight ?? 1.4) * k })
+  return checkFinite(estimateOnce(depth, imageSize, detections, colors, { ...options, cameraHeight: (options.cameraHeight ?? 1.4) * k }))
+}
+
+/** 数値が壊れていない(NaN・無限大がない)ことを確かめる。壊れた値のまま3D化すると何も表示されなくなる */
+function checkFinite(layout: RoomLayout): RoomLayout {
+  const numbers = [
+    layout.minX,
+    layout.maxX,
+    layout.minZ,
+    layout.maxZ,
+    layout.height,
+    ...layout.furniture.flatMap((f) => [...f.position, ...f.size, f.rotationY]),
+  ]
+  if (!numbers.every(Number.isFinite)) throw new Error('部屋の形を推定できませんでした。部屋全体が写った別の写真で試してください')
+  return layout
 }
 
 function estimateOnce(
