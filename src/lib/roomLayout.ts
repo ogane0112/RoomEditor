@@ -181,6 +181,25 @@ export function estimateRoomLayout(
   colors: Uint8ClampedArray | null,
   options: LayoutOptions,
 ): RoomLayout {
+  const first = estimateOnce(depth, imageSize, detections, colors, options)
+  if (options.autoScale === false) return first
+  // 高さがほぼ決まっている家具(椅子・テーブル等)があれば、その実測との比で「撮影した高さ」の仮定を直して推定し直す
+  // (壁の検出などは実寸で判定しているので、縮尺を合わせてからもう一度計算する)
+  const reliable: FurnitureKind[] = ['chair', 'table', 'sofa', 'toilet', 'sink', 'oven', 'fridge']
+  const ratios = first.furniture.filter((f) => reliable.includes(f.kind) && f.position[1] === 0).map((f) => FURNITURE[f.kind].size[1] / f.size[1])
+  if (ratios.length === 0) return first
+  const k = Math.min(2, Math.max(0.5, percentile(ratios, 0.5)))
+  if (Math.abs(k - 1) < 0.05) return first
+  return estimateOnce(depth, imageSize, detections, colors, { ...options, cameraHeight: (options.cameraHeight ?? 1.4) * k })
+}
+
+function estimateOnce(
+  depth: DepthMap,
+  imageSize: { width: number; height: number },
+  detections: Detection[],
+  colors: Uint8ClampedArray | null,
+  options: LayoutOptions,
+): RoomLayout {
   const cameraHeight = options.cameraHeight ?? 1.4
   const minScore = options.minScore ?? 0.5
   const { gw, gh } = gridSize(imageSize, options.gridColumns)
@@ -410,27 +429,7 @@ export function estimateRoomLayout(
     })
   }
 
-  // 高さがほぼ決まっている家具(椅子・テーブル等)があれば、その実測との比で全体の縮尺を補正する
-  // (撮影した高さの仮定 cameraHeight のずれを打ち消す)
-  const reliable: FurnitureKind[] = ['chair', 'table', 'sofa', 'toilet', 'sink', 'oven', 'fridge']
-  const ratios = furniture.filter((f) => reliable.includes(f.kind) && f.position[1] === 0).map((f) => FURNITURE[f.kind].size[1] / f.size[1])
-  const k = ratios.length && options.autoScale !== false ? Math.min(1.6, Math.max(0.6, percentile(ratios, 0.5))) : 1
-  const r = (v: number) => Math.round(v * k * 1000) / 1000
-  for (const f of furniture) {
-    f.position = f.position.map(r) as Vec3
-    f.size = f.size.map(r) as Vec3
-  }
-  return {
-    minX: minX * k,
-    maxX: maxX * k,
-    minZ: minZ * k,
-    maxZ,
-    height: Math.min(3.2, Math.max(DEFAULT_WALL_HEIGHT, height * k)),
-    walls,
-    floorColor,
-    wallColor,
-    furniture,
-  }
+  return { minX, maxX, minZ, maxZ, height, walls, floorColor, wallColor, furniture }
 }
 
 /** 推定に使う格子の大きさ */

@@ -1,9 +1,10 @@
 // 「写真から3D化」を本物のAIモデル(家具検出・奥行き推定)で端から端まで確認するE2Eテスト。
-// 事前に `npm run build && npx vite preview --port 4173` でアプリを起動しておく。
-// テスト用の写真には、サンプルの部屋を描画したスクリーンショットを使う。
+// 事前に `npm run build && npx vite preview --port 4173`(アプリ)と `npx vite --port 5173`(テスト写真の描画用)を起動しておく。
+import { writeFileSync } from 'node:fs'
 import { chromium } from 'playwright'
 
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:4173/'
+const DEV_URL = process.env.DEV_URL ?? 'http://localhost:5173/'
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
 const errors = []
@@ -18,14 +19,14 @@ page.on('request', (r) => hosts.add(new URL(r.url()).host))
 try {
   await page.goto(BASE_URL)
 
-  // 1. テスト用の写真を用意する
-  await page.getByText('サンプルの部屋を開く').click()
-  await page.getByText('オブジェクト一覧 (9)').waitFor()
-  await page.waitForTimeout(1500)
-  const photo = await page.locator('canvas').screenshot({ type: 'jpeg', quality: 90, path: 'e2e-photo.jpg' })
-  // 未保存の部屋を閉じる確認ダイアログは「OK」にする
-  page.once('dialog', (d) => d.accept())
-  await page.getByText('← 部屋一覧').click()
+  // 1. テスト用の写真を用意する: サンプルの部屋を、部屋の中から目の高さ(1.4m)で撮ったように描画する
+  //    (開発サーバーからモジュールを直接読み込んで描画する)
+  const renderPage = await browser.newPage()
+  await renderPage.goto(DEV_URL)
+  const dataUrl = await renderPage.evaluate(async () => (await import('/src/three/sampleRoom.ts')).renderSampleRoomPhoto())
+  await renderPage.close()
+  const photo = Buffer.from(dataUrl.split(',')[1], 'base64')
+  writeFileSync('e2e-photo.jpg', photo)
 
   // 2. 写真から3D化する
   await page.getByText('写真から3D化').click()

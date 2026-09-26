@@ -129,3 +129,29 @@ export async function createSampleRoomGLB(): Promise<Blob> {
   })
   return new Blob([result as ArrayBuffer], { type: 'model/gltf-binary' })
 }
+
+/**
+ * サンプルの部屋を、部屋の中から目の高さでスマホ撮影したような画像にする(写真3D化のテスト用)。
+ * カメラ: 高さ 1.4m、35mm換算 26mm 相当の画角、横長 4:3
+ */
+export function renderSampleRoomPhoto(width = 1280, height = 960) {
+  const scene = new THREE.Scene()
+  scene.background = new THREE.Color('#d6d3cc')
+  scene.add(buildSampleRoom())
+  scene.add(new THREE.HemisphereLight('#ffffff', '#6b5a48', 1.8))
+  const sun = new THREE.DirectionalLight('#ffffff', 1.6)
+  sun.position.set(3, 6, 4)
+  scene.add(sun)
+
+  const tanY = 18 / 26 / (width / height)
+  const camera = new THREE.PerspectiveCamera(THREE.MathUtils.radToDeg(2 * Math.atan(tanY)), width / height, 0.05, 50)
+  camera.position.set(0.9, 1.4, 3.2)
+  camera.lookAt(-0.3, 0.7, -1.2)
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true })
+  renderer.setSize(width, height, false)
+  renderer.render(scene, camera)
+  const url = renderer.domElement.toDataURL('image/jpeg', 0.92)
+  renderer.dispose()
+  return url
+}
