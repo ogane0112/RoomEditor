@@ -1,0 +1,269 @@
+{
+ "source": "http://images.cocodataset.org/val2017/000000031735.jpg",
+ "license": 4,
+ "width": 192,
+ "height": 144,
+ "imageWidth": 640,
+ "imageHeight": 480,
+ "groundTruth": [
+  {
+   "name": "potted plant",
+   "bbox": [
+    18,
+    100,
+    202,
+    191
+   ]
+  },
+  {
+   "name": "potted plant",
+   "bbox": [
+    545,
+    189,
+    57,
+    76
+   ]
+  },
+  {
+   "name": "couch",
+   "bbox": [
+    298,
+    234,
+    342,
+    224
+   ]
+  }
+ ],
+ "detections": [
+  {
+   "score": 0.9167041778564453,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 25,
+    "ymin": 112,
+    "xmax": 233,
+    "ymax": 291
+   }
+  },
+  {
+   "score": 0.8599911332130432,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 546,
+    "ymin": 189,
+    "xmax": 599,
+    "ymax": 263
+   }
+  },
+  {
+   "score": 0.983638346195221,
+   "label": "sofa",
+   "box": {
+    "xmin": 298,
+    "ymin": 233,
+    "xmax": 638,
+    "ymax": 459
+   }
+  },
+  {
+   "score": 0.48673954606056213,
+   "label": "diningtable",
+   "box": {
+    "xmin": 54,
+    "ymin": 268,
+    "xmax": 198,
+    "ymax": 392
+   }
+  },
+  {
+   "score": 0.562947154045105,
+   "label": "vase",
+   "box": {
+    "xmin": 93,
+    "ymin": 226,
+    "xmax": 161,
+    "ymax": 287
+   }
+  },
+  {
+   "score": 0.5384119153022766,
+   "label": "vase",
+   "box": {
+    "xmin": 564,
+    "ymin": 237,
+    "xmax": 599,
+    "ymax": 263
+   }
+  },
+  {
+   "score": 0.32549354434013367,
+   "label": "book",
+   "box": {
+    "xmin": 10,
+    "ymin": 316,
+    "xmax": 36,
+    "ymax": 385
+   }
+  },
+  {
+   "score": 0.3010001480579376,
+   "label": "book",
+   "box": {
+    "xmin": 0,
+    "ymin": 310,
+    "xmax": 30,
+    "ymax": 388
+   }
+  },
+  {
+   "score": 0.3202436566352844,
+   "label": "book",
+   "box": {
+    "xmin": 0,
+    "ymin": 304,
+    "xmax": 27,
+    "ymax": 387
+   }
+  },
+  {
+   "score": 0.3434624969959259,
+   "label": "book",
+   "box": {
+    "xmin": 14,
+    "ymin": 324,
+    "xmax": 36,
+    "ymax": 384
+   }
+  },
+  {
+   "score": 0.3356918692588806,
+   "label": "book",
+   "box": {
+    "xmin": 101,
+    "ymin": 440,
+    "xmax": 137,
+    "ymax": 463
+   }
+  },
+  {
+   "score": 0.33767303824424744,
+   "label": "book",
+   "box": {
+    "xmin": 16,
+    "ymin": 330,
+    "xmax": 30,
+    "ymax": 357
+   }
+  },
+  {
+   "score": 0.3972631096839905,
+   "label": "vase",
+   "box": {
+    "xmin": 420,
+    "ymin": 156,
+    "xmax": 430,
+    "ymax": 210
+   }
+  },
+  {
+   "score": 0.38250353932380676,
+   "label": "chair",
+   "box": {
+    "xmin": 0,
+    "ymin": 295,
+    "xmax": 65,
+    "ymax": 412
+   }
+  },
+  {
+   "score": 0.3263954520225525,
+   "label": "book",
+   "box": {
+    "xmin": 0,
+    "ymin": 295,
+    "xmax": 32,
+    "ymax": 382
+   }
+  },
+  {
+   "score": 0.302355021238327,
+   "label": "book",
+   "box": {
+    "xmin": 101,
+    "ymin": 435,
+    "xmax": 137,
+    "ymax": 452
+   }
+  },
+  {
+   "score": 0.3622830808162689,
+   "label": "book",
+   "box": {
+    "xmin": 12,
+    "ymin": 330,
+    "xmax": 34,
+    "ymax": 384
+   }
+  },
+  {
+   "score": 0.33231687545776367,
+   "label": "book",
+   "box": {
+    "xmin": 101,
+    "ymin": 434,
+    "xmax": 138,
+    "ymax": 466
+   }
+  },
+  {
+   "score": 0.3063710033893585,
+   "label": "book",
+   "box": {
+    "xmin": 16,
+    "ymin": 330,
+    "xmax": 29,
+    "ymax": 352
+   }
+  },
+  {
+   "score": 0.402666300535202,
+   "label": "book",
+   "box": {
+    "xmin": 16,
+    "ymin": 330,
+    "xmax": 35,
+    "ymax": 374
+   }
+  },
+  {
+   "score": 0.3020554184913635,
+   "label": "book",
+   "box": {
+    "xmin": 100,
+    "ymin": 454,
+    "xmax": 138,
+    "ymax": 476
+   }
+  },
+  {
+   "score": 0.42438724637031555,
+   "label": "book",
+   "box": {
+    "xmin": 15,
+    "ymin": 331,
+    "xmax": 35,
+    "ymax": 382
+   }
+  },
+  {
+   "score": 0.302192747592926,
+   "label": "book",
+   "box": {
+    "xmin": 1,
+    "ymin": 318,
+    "xmax": 32,
+    "ymax": 388
+   }
+  }
+ ]
+}

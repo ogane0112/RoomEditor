@@ -1,0 +1,268 @@
+{
+ "source": "http://images.cocodataset.org/val2017/000000010092.jpg",
+ "license": 5,
+ "width": 192,
+ "height": 128,
+ "imageWidth": 640,
+ "imageHeight": 426,
+ "groundTruth": [
+  {
+   "name": "bed",
+   "bbox": [
+    94,
+    187,
+    346,
+    189
+   ]
+  },
+  {
+   "name": "chair",
+   "bbox": [
+    580,
+    389,
+    60,
+    37
+   ]
+  },
+  {
+   "name": "dining table",
+   "bbox": [
+    546,
+    264,
+    94,
+    162
+   ]
+  },
+  {
+   "name": "chair",
+   "bbox": [
+    538,
+    205,
+    102,
+    202
+   ]
+  }
+ ],
+ "detections": [
+  {
+   "score": 0.9490306377410889,
+   "label": "bed",
+   "box": {
+    "xmin": 90,
+    "ymin": 56,
+    "xmax": 440,
+    "ymax": 420
+   }
+  },
+  {
+   "score": 0.5022948384284973,
+   "label": "chair",
+   "box": {
+    "xmin": 539,
+    "ymin": 301,
+    "xmax": 637,
+    "ymax": 425
+   }
+  },
+  {
+   "score": 0.5444068312644958,
+   "label": "chair",
+   "box": {
+    "xmin": 539,
+    "ymin": 301,
+    "xmax": 595,
+    "ymax": 424
+   }
+  },
+  {
+   "score": 0.7745810151100159,
+   "label": "diningtable",
+   "box": {
+    "xmin": 547,
+    "ymin": 264,
+    "xmax": 640,
+    "ymax": 394
+   }
+  },
+  {
+   "score": 0.3472314476966858,
+   "label": "chair",
+   "box": {
+    "xmin": 578,
+    "ymin": 388,
+    "xmax": 639,
+    "ymax": 425
+   }
+  },
+  {
+   "score": 0.8031124472618103,
+   "label": "diningtable",
+   "box": {
+    "xmin": 547,
+    "ymin": 264,
+    "xmax": 640,
+    "ymax": 422
+   }
+  },
+  {
+   "score": 0.4309655725955963,
+   "label": "chair",
+   "box": {
+    "xmin": 597,
+    "ymin": 202,
+    "xmax": 640,
+    "ymax": 267
+   }
+  },
+  {
+   "score": 0.5904830694198608,
+   "label": "diningtable",
+   "box": {
+    "xmin": 547,
+    "ymin": 264,
+    "xmax": 640,
+    "ymax": 314
+   }
+  },
+  {
+   "score": 0.5102711915969849,
+   "label": "chair",
+   "box": {
+    "xmin": 549,
+    "ymin": 202,
+    "xmax": 640,
+    "ymax": 393
+   }
+  },
+  {
+   "score": 0.4285218417644501,
+   "label": "chair",
+   "box": {
+    "xmin": 617,
+    "ymin": 201,
+    "xmax": 640,
+    "ymax": 267
+   }
+  },
+  {
+   "score": 0.5194093585014343,
+   "label": "chair",
+   "box": {
+    "xmin": 598,
+    "ymin": 201,
+    "xmax": 640,
+    "ymax": 394
+   }
+  },
+  {
+   "score": 0.42198196053504944,
+   "label": "chair",
+   "box": {
+    "xmin": 539,
+    "ymin": 301,
+    "xmax": 563,
+    "ymax": 379
+   }
+  },
+  {
+   "score": 0.446702241897583,
+   "label": "chair",
+   "box": {
+    "xmin": 354,
+    "ymin": 318,
+    "xmax": 430,
+    "ymax": 423
+   }
+  },
+  {
+   "score": 0.549062192440033,
+   "label": "chair",
+   "box": {
+    "xmin": 541,
+    "ymin": 202,
+    "xmax": 640,
+    "ymax": 424
+   }
+  },
+  {
+   "score": 0.43458399176597595,
+   "label": "chair",
+   "box": {
+    "xmin": 459,
+    "ymin": 195,
+    "xmax": 518,
+    "ymax": 322
+   }
+  },
+  {
+   "score": 0.36973297595977783,
+   "label": "chair",
+   "box": {
+    "xmin": 573,
+    "ymin": 219,
+    "xmax": 603,
+    "ymax": 267
+   }
+  },
+  {
+   "score": 0.38807791471481323,
+   "label": "chair",
+   "box": {
+    "xmin": 572,
+    "ymin": 201,
+    "xmax": 640,
+    "ymax": 268
+   }
+  },
+  {
+   "score": 0.32731255888938904,
+   "label": "chair",
+   "box": {
+    "xmin": 597,
+    "ymin": 214,
+    "xmax": 640,
+    "ymax": 267
+   }
+  },
+  {
+   "score": 0.4920194745063782,
+   "label": "chair",
+   "box": {
+    "xmin": 601,
+    "ymin": 202,
+    "xmax": 640,
+    "ymax": 394
+   }
+  },
+  {
+   "score": 0.314212828874588,
+   "label": "chair",
+   "box": {
+    "xmin": 601,
+    "ymin": 264,
+    "xmax": 639,
+    "ymax": 395
+   }
+  },
+  {
+   "score": 0.3460880517959595,
+   "label": "chair",
+   "box": {
+    "xmin": 358,
+    "ymin": 188,
+    "xmax": 438,
+    "ymax": 421
+   }
+  },
+  {
+   "score": 0.31738513708114624,
+   "label": "chair",
+   "box": {
+    "xmin": 588,
+    "ymin": 219,
+    "xmax": 603,
+    "ymax": 266
+   }
+  }
+ ]
+}

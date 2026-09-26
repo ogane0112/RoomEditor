@@ -1,0 +1,416 @@
+{
+ "source": "http://images.cocodataset.org/val2017/000000029596.jpg",
+ "license": 4,
+ "width": 192,
+ "height": 128,
+ "imageWidth": 640,
+ "imageHeight": 428,
+ "groundTruth": [
+  {
+   "name": "tv",
+   "bbox": [
+    567,
+    64,
+    73,
+    205
+   ]
+  },
+  {
+   "name": "chair",
+   "bbox": [
+    264,
+    227,
+    49,
+    120
+   ]
+  },
+  {
+   "name": "chair",
+   "bbox": [
+    436,
+    236,
+    73,
+    113
+   ]
+  },
+  {
+   "name": "couch",
+   "bbox": [
+    1,
+    260,
+    254,
+    163
+   ]
+  },
+  {
+   "name": "dining table",
+   "bbox": [
+    313,
+    254,
+    125,
+    23
+   ]
+  },
+  {
+   "name": "potted plant",
+   "bbox": [
+    32,
+    84,
+    53,
+    80
+   ]
+  }
+ ],
+ "detections": [
+  {
+   "score": 0.9702677130699158,
+   "label": "chair",
+   "box": {
+    "xmin": 261,
+    "ymin": 230,
+    "xmax": 313,
+    "ymax": 340
+   }
+  },
+  {
+   "score": 0.945032000541687,
+   "label": "chair",
+   "box": {
+    "xmin": 439,
+    "ymin": 235,
+    "xmax": 504,
+    "ymax": 346
+   }
+  },
+  {
+   "score": 0.9818309545516968,
+   "label": "sofa",
+   "box": {
+    "xmin": 0,
+    "ymin": 255,
+    "xmax": 250,
+    "ymax": 424
+   }
+  },
+  {
+   "score": 0.8599100112915039,
+   "label": "tvmonitor",
+   "box": {
+    "xmin": 569,
+    "ymin": 65,
+    "xmax": 639,
+    "ymax": 263
+   }
+  },
+  {
+   "score": 0.5764032602310181,
+   "label": "book",
+   "box": {
+    "xmin": 505,
+    "ymin": 263,
+    "xmax": 574,
+    "ymax": 282
+   }
+  },
+  {
+   "score": 0.680589497089386,
+   "label": "book",
+   "box": {
+    "xmin": 519,
+    "ymin": 284,
+    "xmax": 568,
+    "ymax": 301
+   }
+  },
+  {
+   "score": 0.6948694586753845,
+   "label": "diningtable",
+   "box": {
+    "xmin": 300,
+    "ymin": 253,
+    "xmax": 442,
+    "ymax": 372
+   }
+  },
+  {
+   "score": 0.5161625146865845,
+   "label": "book",
+   "box": {
+    "xmin": 518,
+    "ymin": 282,
+    "xmax": 605,
+    "ymax": 303
+   }
+  },
+  {
+   "score": 0.341450959444046,
+   "label": "cup",
+   "box": {
+    "xmin": 326,
+    "ymin": 252,
+    "xmax": 338,
+    "ymax": 260
+   }
+  },
+  {
+   "score": 0.44872358441352844,
+   "label": "diningtable",
+   "box": {
+    "xmin": 312,
+    "ymin": 253,
+    "xmax": 440,
+    "ymax": 277
+   }
+  },
+  {
+   "score": 0.38754650950431824,
+   "label": "vase",
+   "box": {
+    "xmin": 203,
+    "ymin": 215,
+    "xmax": 235,
+    "ymax": 258
+   }
+  },
+  {
+   "score": 0.461932897567749,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 177,
+    "ymin": 225,
+    "xmax": 208,
+    "ymax": 257
+   }
+  },
+  {
+   "score": 0.4607471227645874,
+   "label": "vase",
+   "box": {
+    "xmin": 184,
+    "ymin": 239,
+    "xmax": 197,
+    "ymax": 257
+   }
+  },
+  {
+   "score": 0.39603108167648315,
+   "label": "book",
+   "box": {
+    "xmin": 567,
+    "ymin": 288,
+    "xmax": 605,
+    "ymax": 302
+   }
+  },
+  {
+   "score": 0.5372335314750671,
+   "label": "diningtable",
+   "box": {
+    "xmin": 484,
+    "ymin": 262,
+    "xmax": 639,
+    "ymax": 423
+   }
+  },
+  {
+   "score": 0.36750948429107666,
+   "label": "diningtable",
+   "box": {
+    "xmin": 305,
+    "ymin": 253,
+    "xmax": 441,
+    "ymax": 283
+   }
+  },
+  {
+   "score": 0.46706724166870117,
+   "label": "book",
+   "box": {
+    "xmin": 521,
+    "ymin": 289,
+    "xmax": 567,
+    "ymax": 302
+   }
+  },
+  {
+   "score": 0.46465009450912476,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 352,
+    "ymin": 235,
+    "xmax": 381,
+    "ymax": 263
+   }
+  },
+  {
+   "score": 0.3159460723400116,
+   "label": "book",
+   "box": {
+    "xmin": 509,
+    "ymin": 275,
+    "xmax": 575,
+    "ymax": 285
+   }
+  },
+  {
+   "score": 0.49728137254714966,
+   "label": "vase",
+   "box": {
+    "xmin": 188,
+    "ymin": 239,
+    "xmax": 198,
+    "ymax": 259
+   }
+  },
+  {
+   "score": 0.31380990147590637,
+   "label": "book",
+   "box": {
+    "xmin": 506,
+    "ymin": 270,
+    "xmax": 574,
+    "ymax": 281
+   }
+  },
+  {
+   "score": 0.4311255216598511,
+   "label": "vase",
+   "box": {
+    "xmin": 48,
+    "ymin": 147,
+    "xmax": 72,
+    "ymax": 164
+   }
+  },
+  {
+   "score": 0.41938623785972595,
+   "label": "book",
+   "box": {
+    "xmin": 519,
+    "ymin": 288,
+    "xmax": 606,
+    "ymax": 303
+   }
+  },
+  {
+   "score": 0.3818291425704956,
+   "label": "book",
+   "box": {
+    "xmin": 506,
+    "ymin": 269,
+    "xmax": 575,
+    "ymax": 284
+   }
+  },
+  {
+   "score": 0.3000248372554779,
+   "label": "diningtable",
+   "box": {
+    "xmin": 263,
+    "ymin": 257,
+    "xmax": 441,
+    "ymax": 354
+   }
+  },
+  {
+   "score": 0.3351269066333771,
+   "label": "diningtable",
+   "box": {
+    "xmin": 487,
+    "ymin": 262,
+    "xmax": 640,
+    "ymax": 321
+   }
+  },
+  {
+   "score": 0.45115983486175537,
+   "label": "book",
+   "box": {
+    "xmin": 519,
+    "ymin": 282,
+    "xmax": 594,
+    "ymax": 294
+   }
+  },
+  {
+   "score": 0.3035070300102234,
+   "label": "book",
+   "box": {
+    "xmin": 568,
+    "ymin": 292,
+    "xmax": 606,
+    "ymax": 302
+   }
+  },
+  {
+   "score": 0.37919852137565613,
+   "label": "book",
+   "box": {
+    "xmin": 506,
+    "ymin": 270,
+    "xmax": 575,
+    "ymax": 282
+   }
+  },
+  {
+   "score": 0.4288237988948822,
+   "label": "book",
+   "box": {
+    "xmin": 506,
+    "ymin": 263,
+    "xmax": 572,
+    "ymax": 272
+   }
+  },
+  {
+   "score": 0.31939467787742615,
+   "label": "book",
+   "box": {
+    "xmin": 529,
+    "ymin": 282,
+    "xmax": 595,
+    "ymax": 293
+   }
+  },
+  {
+   "score": 0.30347466468811035,
+   "label": "diningtable",
+   "box": {
+    "xmin": 485,
+    "ymin": 262,
+    "xmax": 639,
+    "ymax": 322
+   }
+  },
+  {
+   "score": 0.3573633134365082,
+   "label": "book",
+   "box": {
+    "xmin": 506,
+    "ymin": 270,
+    "xmax": 574,
+    "ymax": 282
+   }
+  },
+  {
+   "score": 0.35309797525405884,
+   "label": "vase",
+   "box": {
+    "xmin": 180,
+    "ymin": 239,
+    "xmax": 193,
+    "ymax": 256
+   }
+  },
+  {
+   "score": 0.36204835772514343,
+   "label": "book",
+   "box": {
+    "xmin": 519,
+    "ymin": 282,
+    "xmax": 576,
+    "ymax": 293
+   }
+  }
+ ]
+}

@@ -1,0 +1,574 @@
+{
+ "source": "http://images.cocodataset.org/val2017/000000039477.jpg",
+ "license": 3,
+ "width": 192,
+ "height": 126,
+ "imageWidth": 640,
+ "imageHeight": 421,
+ "groundTruth": [
+  {
+   "name": "potted plant",
+   "bbox": [
+    210,
+    220,
+    52,
+    81
+   ]
+  },
+  {
+   "name": "tv",
+   "bbox": [
+    0,
+    160,
+    103,
+    160
+   ]
+  },
+  {
+   "name": "couch",
+   "bbox": [
+    341,
+    237,
+    252,
+    184
+   ]
+  },
+  {
+   "name": "potted plant",
+   "bbox": [
+    310,
+    272,
+    20,
+    32
+   ]
+  },
+  {
+   "name": "potted plant",
+   "bbox": [
+    276,
+    270,
+    23,
+    39
+   ]
+  },
+  {
+   "name": "potted plant",
+   "bbox": [
+    448,
+    46,
+    90,
+    92
+   ]
+  },
+  {
+   "name": "potted plant",
+   "bbox": [
+    534,
+    58,
+    101,
+    97
+   ]
+  },
+  {
+   "name": "potted plant",
+   "bbox": [
+    259,
+    291,
+    16,
+    18
+   ]
+  }
+ ],
+ "detections": [
+  {
+   "score": 0.6399156451225281,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 205,
+    "ymin": 222,
+    "xmax": 258,
+    "ymax": 287
+   }
+  },
+  {
+   "score": 0.9648524522781372,
+   "label": "sofa",
+   "box": {
+    "xmin": 340,
+    "ymin": 222,
+    "xmax": 590,
+    "ymax": 416
+   }
+  },
+  {
+   "score": 0.8794007301330566,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 307,
+    "ymin": 269,
+    "xmax": 328,
+    "ymax": 305
+   }
+  },
+  {
+   "score": 0.7216300368309021,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 259,
+    "ymin": 270,
+    "xmax": 306,
+    "ymax": 317
+   }
+  },
+  {
+   "score": 0.5510896444320679,
+   "label": "book",
+   "box": {
+    "xmin": 33,
+    "ymin": 363,
+    "xmax": 73,
+    "ymax": 409
+   }
+  },
+  {
+   "score": 0.5331087112426758,
+   "label": "book",
+   "box": {
+    "xmin": 24,
+    "ymin": 357,
+    "xmax": 65,
+    "ymax": 405
+   }
+  },
+  {
+   "score": 0.3905312120914459,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 258,
+    "ymin": 270,
+    "xmax": 297,
+    "ymax": 312
+   }
+  },
+  {
+   "score": 0.41934651136398315,
+   "label": "book",
+   "box": {
+    "xmin": 25,
+    "ymin": 356,
+    "xmax": 74,
+    "ymax": 416
+   }
+  },
+  {
+   "score": 0.61811763048172,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 206,
+    "ymin": 222,
+    "xmax": 258,
+    "ymax": 320
+   }
+  },
+  {
+   "score": 0.5782731175422668,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 275,
+    "ymin": 272,
+    "xmax": 298,
+    "ymax": 310
+   }
+  },
+  {
+   "score": 0.5486600399017334,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 273,
+    "ymin": 271,
+    "xmax": 306,
+    "ymax": 317
+   }
+  },
+  {
+   "score": 0.3378063142299652,
+   "label": "vase",
+   "box": {
+    "xmin": 273,
+    "ymin": 295,
+    "xmax": 306,
+    "ymax": 317
+   }
+  },
+  {
+   "score": 0.3098383843898773,
+   "label": "chair",
+   "box": {
+    "xmin": 341,
+    "ymin": 222,
+    "xmax": 456,
+    "ymax": 414
+   }
+  },
+  {
+   "score": 0.4439902901649475,
+   "label": "book",
+   "box": {
+    "xmin": 54,
+    "ymin": 387,
+    "xmax": 86,
+    "ymax": 420
+   }
+  },
+  {
+   "score": 0.30092278122901917,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 261,
+    "ymin": 270,
+    "xmax": 307,
+    "ymax": 318
+   }
+  },
+  {
+   "score": 0.4397648274898529,
+   "label": "book",
+   "box": {
+    "xmin": 51,
+    "ymin": 376,
+    "xmax": 84,
+    "ymax": 418
+   }
+  },
+  {
+   "score": 0.6756097674369812,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 257,
+    "ymin": 269,
+    "xmax": 280,
+    "ymax": 312
+   }
+  },
+  {
+   "score": 0.4448418915271759,
+   "label": "book",
+   "box": {
+    "xmin": 23,
+    "ymin": 355,
+    "xmax": 62,
+    "ymax": 393
+   }
+  },
+  {
+   "score": 0.43206551671028137,
+   "label": "book",
+   "box": {
+    "xmin": 216,
+    "ymin": 295,
+    "xmax": 238,
+    "ymax": 308
+   }
+  },
+  {
+   "score": 0.32029029726982117,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 259,
+    "ymin": 269,
+    "xmax": 275,
+    "ymax": 285
+   }
+  },
+  {
+   "score": 0.3711131811141968,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 205,
+    "ymin": 222,
+    "xmax": 305,
+    "ymax": 319
+   }
+  },
+  {
+   "score": 0.40656131505966187,
+   "label": "chair",
+   "box": {
+    "xmin": 503,
+    "ymin": 357,
+    "xmax": 592,
+    "ymax": 419
+   }
+  },
+  {
+   "score": 0.37864938378334045,
+   "label": "book",
+   "box": {
+    "xmin": 39,
+    "ymin": 389,
+    "xmax": 68,
+    "ymax": 420
+   }
+  },
+  {
+   "score": 0.3917628228664398,
+   "label": "book",
+   "box": {
+    "xmin": 216,
+    "ymin": 285,
+    "xmax": 240,
+    "ymax": 308
+   }
+  },
+  {
+   "score": 0.5119234323501587,
+   "label": "chair",
+   "box": {
+    "xmin": 341,
+    "ymin": 222,
+    "xmax": 590,
+    "ymax": 418
+   }
+  },
+  {
+   "score": 0.4053281545639038,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 273,
+    "ymin": 271,
+    "xmax": 300,
+    "ymax": 316
+   }
+  },
+  {
+   "score": 0.3591170907020569,
+   "label": "book",
+   "box": {
+    "xmin": 47,
+    "ymin": 393,
+    "xmax": 70,
+    "ymax": 419
+   }
+  },
+  {
+   "score": 0.3638937175273895,
+   "label": "vase",
+   "box": {
+    "xmin": 282,
+    "ymin": 298,
+    "xmax": 293,
+    "ymax": 309
+   }
+  },
+  {
+   "score": 0.3310944139957428,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 259,
+    "ymin": 269,
+    "xmax": 273,
+    "ymax": 289
+   }
+  },
+  {
+   "score": 0.31697648763656616,
+   "label": "book",
+   "box": {
+    "xmin": 51,
+    "ymin": 389,
+    "xmax": 68,
+    "ymax": 415
+   }
+  },
+  {
+   "score": 0.4099999666213989,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 451,
+    "ymin": 45,
+    "xmax": 523,
+    "ymax": 105
+   }
+  },
+  {
+   "score": 0.36374029517173767,
+   "label": "book",
+   "box": {
+    "xmin": 25,
+    "ymin": 337,
+    "xmax": 82,
+    "ymax": 415
+   }
+  },
+  {
+   "score": 0.42204004526138306,
+   "label": "book",
+   "box": {
+    "xmin": 59,
+    "ymin": 395,
+    "xmax": 89,
+    "ymax": 420
+   }
+  },
+  {
+   "score": 0.5760630965232849,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 229,
+    "ymin": 223,
+    "xmax": 256,
+    "ymax": 285
+   }
+  },
+  {
+   "score": 0.31263467669487,
+   "label": "vase",
+   "box": {
+    "xmin": 277,
+    "ymin": 297,
+    "xmax": 294,
+    "ymax": 309
+   }
+  },
+  {
+   "score": 0.4432515501976013,
+   "label": "book",
+   "box": {
+    "xmin": 55,
+    "ymin": 394,
+    "xmax": 82,
+    "ymax": 420
+   }
+  },
+  {
+   "score": 0.30322274565696716,
+   "label": "book",
+   "box": {
+    "xmin": 39,
+    "ymin": 375,
+    "xmax": 80,
+    "ymax": 419
+   }
+  },
+  {
+   "score": 0.3830268383026123,
+   "label": "book",
+   "box": {
+    "xmin": 53,
+    "ymin": 383,
+    "xmax": 82,
+    "ymax": 418
+   }
+  },
+  {
+   "score": 0.49010443687438965,
+   "label": "pottedplant",
+   "box": {
+    "xmin": 276,
+    "ymin": 282,
+    "xmax": 298,
+    "ymax": 310
+   }
+  },
+  {
+   "score": 0.3065776824951172,
+   "label": "chair",
+   "box": {
+    "xmin": 337,
+    "ymin": 222,
+    "xmax": 493,
+    "ymax": 416
+   }
+  },
+  {
+   "score": 0.3051390051841736,
+   "label": "book",
+   "box": {
+    "xmin": 37,
+    "ymin": 386,
+    "xmax": 67,
+    "ymax": 412
+   }
+  },
+  {
+   "score": 0.3545644283294678,
+   "label": "book",
+   "box": {
+    "xmin": 216,
+    "ymin": 302,
+    "xmax": 237,
+    "ymax": 308
+   }
+  },
+  {
+   "score": 0.3182029724121094,
+   "label": "chair",
+   "box": {
+    "xmin": 362,
+    "ymin": 356,
+    "xmax": 592,
+    "ymax": 419
+   }
+  },
+  {
+   "score": 0.30678653717041016,
+   "label": "chair",
+   "box": {
+    "xmin": 353,
+    "ymin": 356,
+    "xmax": 591,
+    "ymax": 419
+   }
+  },
+  {
+   "score": 0.37112635374069214,
+   "label": "book",
+   "box": {
+    "xmin": 58,
+    "ymin": 387,
+    "xmax": 85,
+    "ymax": 419
+   }
+  },
+  {
+   "score": 0.35355764627456665,
+   "label": "book",
+   "box": {
+    "xmin": 33,
+    "ymin": 363,
+    "xmax": 71,
+    "ymax": 405
+   }
+  },
+  {
+   "score": 0.3189679682254791,
+   "label": "book",
+   "box": {
+    "xmin": 34,
+    "ymin": 387,
+    "xmax": 68,
+    "ymax": 419
+   }
+  },
+  {
+   "score": 0.31765031814575195,
+   "label": "book",
+   "box": {
+    "xmin": 104,
+    "ymin": 227,
+    "xmax": 121,
+    "ymax": 257
+   }
+  },
+  {
+   "score": 0.31238189339637756,
+   "label": "book",
+   "box": {
+    "xmin": 32,
+    "ymin": 364,
+    "xmax": 68,
+    "ymax": 406
+   }
+  }
+ ]
+}

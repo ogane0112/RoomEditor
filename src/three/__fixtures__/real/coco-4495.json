@@ -1,0 +1,169 @@
+{
+ "source": "http://images.cocodataset.org/val2017/000000004495.jpg",
+ "license": 3,
+ "width": 192,
+ "height": 144,
+ "imageWidth": 500,
+ "imageHeight": 375,
+ "groundTruth": [
+  {
+   "name": "tv",
+   "bbox": [
+    190,
+    111,
+    72,
+    67
+   ]
+  },
+  {
+   "name": "couch",
+   "bbox": [
+    202,
+    199,
+    296,
+    176
+   ]
+  },
+  {
+   "name": "chair",
+   "bbox": [
+    4,
+    149,
+    150,
+    179
+   ]
+  }
+ ],
+ "detections": [
+  {
+   "score": 0.9661734104156494,
+   "label": "tvmonitor",
+   "box": {
+    "xmin": 190,
+    "ymin": 111,
+    "xmax": 260,
+    "ymax": 177
+   }
+  },
+  {
+   "score": 0.985099732875824,
+   "label": "chair",
+   "box": {
+    "xmin": 2,
+    "ymin": 147,
+    "xmax": 154,
+    "ymax": 328
+   }
+  },
+  {
+   "score": 0.7225735187530518,
+   "label": "sofa",
+   "box": {
+    "xmin": 200,
+    "ymin": 198,
+    "xmax": 498,
+    "ymax": 371
+   }
+  },
+  {
+   "score": 0.3545306622982025,
+   "label": "book",
+   "box": {
+    "xmin": 201,
+    "ymin": 178,
+    "xmax": 260,
+    "ymax": 188
+   }
+  },
+  {
+   "score": 0.5327396988868713,
+   "label": "sofa",
+   "box": {
+    "xmin": 2,
+    "ymin": 147,
+    "xmax": 154,
+    "ymax": 328
+   }
+  },
+  {
+   "score": 0.30022314190864563,
+   "label": "book",
+   "box": {
+    "xmin": 200,
+    "ymin": 180,
+    "xmax": 259,
+    "ymax": 187
+   }
+  },
+  {
+   "score": 0.36592286825180054,
+   "label": "person",
+   "box": {
+    "xmin": 228,
+    "ymin": 124,
+    "xmax": 243,
+    "ymax": 146
+   }
+  },
+  {
+   "score": 0.3547481596469879,
+   "label": "person",
+   "box": {
+    "xmin": 229,
+    "ymin": 124,
+    "xmax": 243,
+    "ymax": 146
+   }
+  },
+  {
+   "score": 0.30747053027153015,
+   "label": "sofa",
+   "box": {
+    "xmin": 2,
+    "ymin": 151,
+    "xmax": 154,
+    "ymax": 328
+   }
+  },
+  {
+   "score": 0.3009800910949707,
+   "label": "person",
+   "box": {
+    "xmin": 199,
+    "ymin": 116,
+    "xmax": 218,
+    "ymax": 156
+   }
+  },
+  {
+   "score": 0.3024837374687195,
+   "label": "person",
+   "box": {
+    "xmin": 202,
+    "ymin": 116,
+    "xmax": 216,
+    "ymax": 149
+   }
+  },
+  {
+   "score": 0.30294686555862427,
+   "label": "person",
+   "box": {
+    "xmin": 210,
+    "ymin": 120,
+    "xmax": 228,
+    "ymax": 152
+   }
+  },
+  {
+   "score": 0.3182741403579712,
+   "label": "person",
+   "box": {
+    "xmin": 235,
+    "ymin": 124,
+    "xmax": 251,
+    "ymax": 160
+   }
+  }
+ ]
+}
