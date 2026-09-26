@@ -1,0 +1,19 @@
+name: Probe models (temporary)
+on:
+  push:
+    branches: [claude/create-from-reference-mql44v]
+    paths: ['.github/workflows/probe-models.yml']
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          for q in "depth-anything-v2-metric" "depth-anything-metric" "metric3d" "depth-pro" "detr-resnet" "yolos" "owlv2" "grounding-dino" "rtdetr" "d-fine"; do
+            echo "== search $q"
+            curl -s "https://huggingface.co/api/models?search=$q&limit=15" | jq -r '.[] | select(.id|test("onnx-community|Xenova")) | .id'
+          done
+          for m in onnx-community/depth-anything-v2-metric-indoor-small Xenova/detr-resnet-50 Xenova/yolos-tiny onnx-community/rtdetr_r18vd onnx-community/dfine_s_coco-ONNX; do
+            echo "== files $m"
+            curl -s "https://huggingface.co/api/models/$m/tree/main/onnx" | jq -r '.[] | "\(.path) \(.size)"' 2>/dev/null | head -20
+            curl -s "https://huggingface.co/$m/resolve/main/config.json" | jq -c '{model_type, depth_estimation_type, max_depth, id2label: (.id2label|tostring|.[0:120])}' 2>/dev/null
+          done
