@@ -1,0 +1,48 @@
+{
+ "width": 256,
+ "height": 192,
+ "imageWidth": 1280,
+ "imageHeight": 960,
+ "detections": [
+  {
+   "score": 0.8458396792411804,
+   "label": "chair",
+   "box": {
+    "xmin": 952,
+    "ymin": 536,
+    "xmax": 1278,
+    "ymax": 958
+   }
+  },
+  {
+   "score": 0.45376160740852356,
+   "label": "sofa",
+   "box": {
+    "xmin": 479,
+    "ymin": 428,
+    "xmax": 912,
+    "ymax": 662
+   }
+  },
+  {
+   "score": 0.40600699186325073,
+   "label": "chair",
+   "box": {
+    "xmin": 436,
+    "ymin": 428,
+    "xmax": 912,
+    "ymax": 784
+   }
+  },
+  {
+   "score": 0.30838388204574585,
+   "label": "sofa",
+   "box": {
+    "xmin": 486,
+    "ymin": 428,
+    "xmax": 913,
+    "ymax": 661
+   }
+  }
+ ]
+}
