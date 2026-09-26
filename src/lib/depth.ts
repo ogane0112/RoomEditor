@@ -1,6 +1,6 @@
 // 写真1枚から奥行き(深度)を推定する(Depth Anything V2 small)。
 import type { DepthEstimationPipeline } from '@huggingface/transformers'
-import { loadModel, type ModelProgress } from './ai'
+import { runModel, type ModelProgress } from './ai'
 
 export const DEPTH_MODEL_ID = 'onnx-community/depth-anything-v2-small'
 
@@ -13,9 +13,10 @@ export interface DepthMap {
 
 /** 画像(canvas)から奥行きマップを推定する */
 export async function estimateDepth(image: HTMLCanvasElement, onProgress: (p: ModelProgress) => void): Promise<DepthMap> {
-  const estimator = await loadModel<DepthEstimationPipeline>('depth-estimation', DEPTH_MODEL_ID, onProgress)
   const { RawImage } = await import('@huggingface/transformers')
-  const result = await estimator(RawImage.fromCanvas(image))
+  const result = await runModel('depth-estimation', DEPTH_MODEL_ID, onProgress, (estimator: DepthEstimationPipeline) =>
+    estimator(RawImage.fromCanvas(image)),
+  )
   const output = Array.isArray(result) ? result[0] : result
   const tensor = output.predicted_depth
   const [height, width] = tensor.dims.slice(-2)

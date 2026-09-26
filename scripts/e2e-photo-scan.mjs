@@ -5,7 +5,11 @@ import { chromium } from 'playwright'
 
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:4173/'
 const DEV_URL = process.env.DEV_URL ?? 'http://localhost:5173/'
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })
+// E2E_WEBGPU=1 のときは、ソフトウェア実装の WebGPU を有効にして GPU 経由の経路も確かめる
+const webgpuArgs = ['--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-vulkan=swiftshader', '--use-webgpu-adapter=swiftshader', '--disable-vulkan-surface']
+const browser = await chromium.launch({
+  args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', ...(process.env.E2E_WEBGPU ? webgpuArgs : [])],
+})
 const page = await browser.newPage({ viewport: { width: 1280, height: 800 } })
 const errors = []
 const hosts = new Set()
@@ -18,6 +22,9 @@ page.on('request', (r) => hosts.add(new URL(r.url()).host))
 
 try {
   await page.goto(BASE_URL)
+  const hasGpu = await page.evaluate(async () => !!(await navigator.gpu?.requestAdapter?.().catch(() => null)))
+  console.log('WebGPU adapter:', hasGpu)
+  if (process.env.E2E_WEBGPU && !hasGpu) throw new Error('WebGPU adapter is not available')
 
   // 1. テスト用の写真を用意する: サンプルの部屋を、部屋の中から目の高さ(1.4m)で撮ったように描画する
   //    (開発サーバーからモジュールを直接読み込んで描画する)
