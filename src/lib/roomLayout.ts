@@ -201,7 +201,7 @@ function estimateOnce(
   options: LayoutOptions,
 ): RoomLayout {
   const cameraHeight = options.cameraHeight ?? 1.4
-  const minScore = options.minScore ?? 0.5
+  const minScore = options.minScore ?? 0.4
   const { gw, gh } = gridSize(imageSize, options.gridColumns)
   const aspect = imageSize.width / imageSize.height
   const tanLong = Math.tan(Math.atan(18 / options.focalLength35mm))
@@ -212,7 +212,8 @@ function estimateOnce(
   const pieces = detections
     .filter((d) => d.score >= minScore && COCO_TO_KIND[d.label])
     .sort((a, b) => b.score - a.score)
-    .filter((d, i, all) => !all.slice(0, i).some((e) => COCO_TO_KIND[e.label] === COCO_TO_KIND[d.label] && iou(e.box, d.box) > 0.5))
+    // 同じ物を別の種類でも検出することがあるので、種類を問わず大きく重なる低スコアの枠は捨てる
+    .filter((d, i, all) => !all.slice(0, i).some((e) => iou(e.box, d.box) > 0.45))
   // 格子上で「家具に覆われている点」を記録する(床・壁の推定から外すため)
   const covered = new Uint8Array(gw * gh)
   for (const d of pieces) {
@@ -408,7 +409,8 @@ function estimateOnce(
     // 奥行き: 見えている面の奥行きの広がりと、種類ごとの標準的な比率の間をとる
     const spread = percentile(body.map(dist), 0.9) - percentile(body.map(dist), 0.1)
     const typical = prior.size[2] * (width / prior.size[0]) ** 0.5
-    const depthSize = Math.min(prior.size[2] * 1.6, Math.max(prior.size[2] * 0.5, Math.max(typical, spread)))
+    // (見えている面の広がりは背もたれ等で大きめに出やすいので、標準の比率を重く見る)
+    const depthSize = Math.min(prior.size[2] * 1.4, Math.max(prior.size[2] * 0.6, typical * 0.7 + spread * 0.3))
 
     // 底面の中心 = 正面の下端から、視線の水平方向へ奥行きの半分
     const dir = normalize([front[0] - cameraPos[0], 0, front[2] - cameraPos[2]])

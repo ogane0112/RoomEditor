@@ -88,3 +88,44 @@ describe('estimateRoomLayout', () => {
     expect(box.max.x - box.min.x).toBeCloseTo(byName['ソファ'].size[0], 3)
   })
 })
+
+describe('estimateRoomLayout on an eye-level photo', () => {
+  // サンプルの部屋を部屋の中から目の高さ(1.4m)で撮った画像に対する、実際のAIの出力(奥行き+家具検出)。
+  // 正解: カメラから奥の壁まで5.2m・左の壁まで3.4m、右は壁なし。ソファ(2.0×0.85×0.9m)の中心まで4.6m、
+  // 椅子(高さ0.9m)まで2.2m。家具検出にはソファとテーブルをまとめた誤検出(椅子 0.41)が含まれる
+  const meta = JSON.parse(readFileSync(new URL('../three/__fixtures__/eye.json', import.meta.url), 'utf8'))
+  const buf = readFileSync(new URL('../three/__fixtures__/eye.depth.bin', import.meta.url))
+  const u16 = new Uint16Array(buf.buffer, buf.byteOffset, buf.byteLength / 2)
+  const depth = { width: meta.width, height: meta.height, data: Float32Array.from(u16, (v) => v / 65535) }
+  const layout = estimateRoomLayout(depth, { width: meta.imageWidth, height: meta.imageHeight }, meta.detections, null, {
+    focalLength35mm: 26,
+  })
+  const find = (kind: string) => layout.furniture.filter((f) => f.kind === kind)
+  const dist = (p: number[]) => Math.hypot(p[0], p[2])
+
+  it('finds the walls at roughly the right distances', () => {
+    expect(layout.walls).toEqual({ back: true, left: true, right: false })
+    expect(-layout.minZ).toBeGreaterThan(4.4)
+    expect(-layout.minZ).toBeLessThan(6)
+    expect(-layout.minX).toBeGreaterThan(2.6)
+    expect(-layout.minX).toBeLessThan(4.2)
+  })
+
+  it('drops the overlapping false detection and sizes the furniture', () => {
+    expect(find('chair')).toHaveLength(1)
+    expect(find('sofa')).toHaveLength(1)
+    const [sofa] = find('sofa')
+    const [chair] = find('chair')
+    expect(dist(sofa.position)).toBeGreaterThan(3.8)
+    expect(dist(sofa.position)).toBeLessThan(5.4)
+    expect(sofa.size[0]).toBeGreaterThan(1.5)
+    expect(sofa.size[0]).toBeLessThan(2.5)
+    expect(sofa.size[2]).toBeLessThan(1.3)
+    expect(chair.size[1]).toBeGreaterThan(0.75)
+    expect(chair.size[1]).toBeLessThan(1.05)
+    expect(dist(chair.position)).toBeGreaterThan(1.8)
+    expect(dist(chair.position)).toBeLessThan(2.8)
+    // 椅子は右手前、ソファは左奥
+    expect(chair.position[0]).toBeGreaterThan(sofa.position[0])
+  })
+})
